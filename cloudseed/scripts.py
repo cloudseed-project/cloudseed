@@ -19,7 +19,7 @@ options:
 
 common commands:
     bootstrap <profile>   Deploy a Salt Master based on a .cloudseed profile
-    init                  Initialize a new .cloudseed configuration
+    init <name>           Initialize a new .cloudseed configuration
     status                Current cloudseed status
     '''
 
@@ -31,19 +31,21 @@ common commands:
     command = args['<command>']
     argv = [args['<command>']] + args['<args>']
 
-    config = Config(args['--config'][0])
+
 
     if command == 'init':
         from cloudseed.commands import initialize
-        initialize.run(config, argv)
-
-    elif command == 'bootstrap':
-        from cloudseed.commands import bootstrap
-        bootstrap.run(config, argv)
-
-    elif args['<command>'] in ('help', None):
-        exit(call(['cloudseed', '--help']))
-
+        initialize.run(argv)
     else:
-        exit('{0} is not a cloudseed command. See \'cloudseed --help\'.' \
-            .format(args['<command>']))
+        config = Config(args['--config'][0])
+
+        if command == 'bootstrap':
+            from cloudseed.commands import bootstrap
+            bootstrap.run(config, argv)
+
+        elif args['<command>'] in ('help', None):
+            exit(call(['cloudseed', '--help']))
+
+        else:
+            exit('{0} is not a cloudseed command. See \'cloudseed --help\'.' \
+                .format(args['<command>']))

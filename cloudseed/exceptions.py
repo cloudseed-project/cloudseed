@@ -6,6 +6,10 @@ class NoProviderInConfig(CloudseedException):
     '''No provider defined in config'''
 
 
+class NoProjectInConfig(CloudseedException):
+    '''No provider defined in config'''
+
+
 class ConfigNotFound(CloudseedException):
     '''Cloudseed config not found'''
 

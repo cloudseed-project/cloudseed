@@ -1,27 +1,52 @@
 '''
-usage: cloudseed init
+usage:
+  cloudseed init <name>
+
+options:
+  -h, --help            Show this screen.
+  <name>                The name of the cloudseed project.
+
 '''
 import os
+import yaml
+import uuid
 from docopt import docopt
 
 
-def run(config, argv):
+def run(argv):
     args = docopt(__doc__, argv=argv)
-
     cwd = os.getcwd()
-    project_dir = '{0}/{1}'.format(cwd, '.cloudseed')
 
-    try:
+    project_name = args['<name>']
+
+    user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
+    project_dir = '{0}/{1}'.format(user_dir, project_name)
+    local_dir = '{0}/{1}'.format(cwd, '.cloudseed')
+    session_id = uuid.uuid4().hex
+
+    if not os.path.exists(user_dir):
+        os.mkdir(user_dir)
+
+    if not os.path.exists(project_dir):
         os.mkdir(project_dir)
-    except OSError:
-        return
 
-    # create base files
-    with open('{0}/{1}'.format(project_dir, 'config'), 'w'):
-        pass
+    if not os.path.exists(local_dir):
+        os.mkdir(local_dir)
 
-    with open('{0}/{1}'.format(project_dir, 'development'), 'w'):
-        pass
+    config = {
+    'project': project_name,
+    'session': session_id
+    }
 
-    with open('{0}/{1}'.format(project_dir, 'production'), 'w'):
-        pass
+    local_config_path = '{0}/config'.format(local_dir)
+    with open(local_config_path, 'w') as cfg:
+        cfg.write(yaml.dump(config, default_flow_style=False))
+
+    session_path = '{0}/session_{1}'.format(project_dir, session_id)
+    with open(session_path, 'w') as session:
+        data = {
+        'profile': None,
+        'path': local_dir
+        }
+
+        session.write(yaml.dump(data, default_flow_style=False))
