@@ -15,9 +15,15 @@ from docopt import docopt
 
 def run(argv):
     args = docopt(__doc__, argv=argv)
+
     cwd = os.getcwd()
+    project_dir = '{0}/{1}'.format(cwd, '.cloudseed')
 
     project_name = args['<name>']
+        print('called')
+        #os.mkdir(project_dir)
+    except OSError:
+        return
 
     user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
     project_dir = '{0}/{1}'.format(user_dir, project_name)

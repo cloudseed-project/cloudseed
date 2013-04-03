@@ -1,1 +1,5 @@
 .cloudseed
+*.pyc
+build/
+dist/
+cloudseed.egg-info/
