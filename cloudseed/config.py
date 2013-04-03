@@ -16,8 +16,6 @@ class Config(object):
         except IOError:
             self.data = {}
 
-        import pdb; pdb.set_trace()
-
         try:
             with open(path) as cfg:
                 self.data.update(yaml.load(cfg))
