@@ -49,5 +49,15 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
     ),
+    entry_points={
+        'console_scripts': [
+            'cloudseed = cloudseed.scripts:cloudseed_main',
+            'cloudseed_init = cloudseed.scripts:cloudseed_init',
+            'cloudseed_bootstrap = cloudseed.scripts:cloudseed_bootstrap'
+        ],
+        'com.cloudseed.providers': [
+            'ec2 = cloudseed.providers.ec2',
+        ],
+    }
 )
 
