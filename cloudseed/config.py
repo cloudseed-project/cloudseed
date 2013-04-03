@@ -1,3 +1,4 @@
+import os
 import yaml
 from stevedore import driver
 from cloudseed.exceptions import (
@@ -9,8 +10,17 @@ class Config(object):
     def __init__(self, path):
 
         try:
-            with open(path) as cfg:
+            with open('{}/.cloudseed'\
+                .format(os.path.expanduser('~'))) as cfg:
                 self.data = yaml.load(cfg)
+        except IOError:
+            self.data = {}
+
+        import pdb; pdb.set_trace()
+
+        try:
+            with open(path) as cfg:
+                self.data.update(yaml.load(cfg))
         except IOError:
             raise ConfigNotFound
 
