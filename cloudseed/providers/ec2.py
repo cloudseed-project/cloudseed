@@ -15,7 +15,7 @@ class EC2Provider(object):
     def _create_key_pair(self):
         name = self.config.get('name', 'ec2-key')
         location = self.config.get('location', '~/.ssh')
-        import pdb; pdb.set_trace()
+        
         try:
             key_pair = self.conn.create_key_pair(name)
             key_pair.save(location)
