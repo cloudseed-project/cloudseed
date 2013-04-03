@@ -10,7 +10,7 @@ class Config(object):
     def __init__(self, path):
 
         try:
-            with open('{}/.cloudseed'\
+            with open('{}/.cloudseed/config'\
                 .format(os.path.expanduser('~'))) as cfg:
                 self.data = yaml.load(cfg)
         except IOError:
@@ -40,6 +40,10 @@ class Config(object):
 
     @property
     def provider(self):
+        return self.__provider
+
+    @property
+    def profile(self):
         return self.__provider
 
 
