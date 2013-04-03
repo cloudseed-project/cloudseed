@@ -1,8 +1,8 @@
 import sys
 from subprocess import call
-import yaml
 from docopt import docopt
 import cloudseed
+from cloudseed.config import Config
 from cloudseed.exceptions import (NoProviderInConfig)
 
 
@@ -31,10 +31,7 @@ common commands:
     command = args['<command>']
     argv = [args['<command>']] + args['<args>']
 
-    with open(args['--config'][0]) as cfg:
-        config = yaml.load(cfg)
-
-    _validate_config(config)
+    config = Config(args['--config'][0])
 
     if command == 'init':
         from cloudseed.commands import initialize
@@ -50,12 +47,3 @@ common commands:
     else:
         exit('{0} is not a cloudseed command. See \'cloudseed --help\'.' \
             .format(args['<command>']))
-
-
-def _validate_config(config):
-    try:
-        provider = config['provider']
-    except KeyError:
-        raise NoProviderInConfig
-
-    # plugin to validate provider config

@@ -4,3 +4,11 @@ class CloudseedException(RuntimeError):
 
 class NoProviderInConfig(CloudseedException):
     '''No provider defined in config'''
+
+
+class ConfigNotFound(CloudseedException):
+    '''Cloudseed config not found'''
+
+
+class UnknownConfigProvider(CloudseedException):
+    '''Unable to load requester provider'''

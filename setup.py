@@ -58,7 +58,7 @@ setup(
         ],
 
         'com.cloudseed.providers': [
-            'ec2 = cloudseed.providers.ec2',
+            'ec2 = cloudseed.providers.ec2:EC2Provider',
         ],
     }
 )
