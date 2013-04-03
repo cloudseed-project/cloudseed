@@ -1,0 +1,4 @@
+project: test
+session: ffffff
+provider: ec23
+ec2.key: aaaaaa

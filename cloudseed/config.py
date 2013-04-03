@@ -11,7 +11,8 @@ class Config(object):
     def __init__(self,
         local_config,
         project_config=None,
-        global_config=None):
+        global_config=None,
+        provider=None):
 
         local_data = {}
         project_data = {}
@@ -27,11 +28,6 @@ class Config(object):
                 local_data = yaml.load(cfg)
         except IOError:
             raise ConfigNotFound
-
-        try:
-            provider = local_data['provider']
-        except KeyError:
-            raise NoProviderInConfig
 
         try:
             project = local_data['project']
@@ -58,16 +54,23 @@ class Config(object):
         self.data.update(project_data)
         self.data.update(local_data)
 
-        try:
-            em = driver.DriverManager(
-                'com.cloudseed.providers',
-                provider,
-                invoke_on_load=True,
-                invoke_kwds={'config': self})
-        except RuntimeError:
-            raise UnknownConfigProvider
+        if not provider:
+            try:
+                provider_name = local_data['provider']
+            except KeyError:
+                raise NoProviderInConfig
 
-        self.__provider = em.driver
+            try:
+                em = driver.DriverManager(
+                    'com.cloudseed.providers',
+                    provider_name,
+                    invoke_on_load=True,
+                    invoke_kwds={'config': self})
+                provider = em.driver
+            except RuntimeError:
+                raise UnknownConfigProvider
+
+        self.__provider = provider
 
     @property
     def provider(self):
