@@ -3,9 +3,11 @@ usage:
   cloudseed bootstrap <profile>
 
 options:
-  -h, --help
+  -h, --help               Show this screen.
+  <profile>                The profile name in your .cloudseed/ folder to load
 
 '''
+import sys
 from docopt import docopt
 
 

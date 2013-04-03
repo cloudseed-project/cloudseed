@@ -1,7 +1,9 @@
+import sys
 from subprocess import call
 import yaml
 from docopt import docopt
 import cloudseed
+from cloudseed.exceptions import (NoProviderInConfig)
 
 
 def cloudseed_main():
@@ -16,8 +18,9 @@ options:
   --version               Show version.
 
 common commands:
-    bootstrap     Deploy a Salt Master based on your .cloudseed configuration
-    init          Initialize a new .cloudseed configuration
+    bootstrap <profile>   Deploy a Salt Master based on a .cloudseed profile
+    init                  Initialize a new .cloudseed configuration
+    status                Current cloudseed status
     '''
 
     args = docopt(
@@ -30,6 +33,8 @@ common commands:
 
     with open(args['--config'][0]) as cfg:
         config = yaml.load(cfg)
+
+    _validate_config(config)
 
     if command == 'init':
         from cloudseed.commands import initialize
@@ -47,20 +52,10 @@ common commands:
             .format(args['<command>']))
 
 
-# def cloudseed_init(argv):
-#     action = commands.Initialize()
-#     action.start(argv[1:])
+def _validate_config(config):
+    try:
+        provider = config['provider']
+    except KeyError:
+        raise NoProviderInConfig
 
-
-# def cloudseed_bootstrap(argv):
-#     '''
-# usage:
-#   cloudseed bootstrap <profile> [-c|--config=<config>]
-
-# options:
-#   -c --config=<config>    Profile to use [default: ./.cloudseed/config]
-
-#     '''
-#     import pdb; pdb.set_trace()
-#     action = commands.Bootstrap()
-#     action.start(argv[1:])
+    # plugin to validate provider config
