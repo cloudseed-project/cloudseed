@@ -12,7 +12,8 @@ def run(config, argv):
     project_dir = '{0}/{1}'.format(cwd, '.cloudseed')
 
     try:
-        os.mkdir(project_dir)
+        print('called')
+        #os.mkdir(project_dir)
     except OSError:
         return
 
