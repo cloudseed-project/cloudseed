@@ -81,3 +81,8 @@ class Config(object):
         return self.__provider
 
 
+
+class FilesystemConfig(object):
+
+    def __init__(self, local_config, project_config=None, global_config=None):
+        pass
