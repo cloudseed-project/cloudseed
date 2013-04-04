@@ -1,6 +1,8 @@
 import os
 import boto
 from boto.ec2.connection import EC2Connection
+from cloudseed.security import add_key_for_config
+
 
 class EC2Provider(object):
 
@@ -9,10 +11,10 @@ class EC2Provider(object):
         self.config = config
         self._connect()
         self._create_key_pair()
-        
+
     def _connect(self):
         self.conn = EC2Connection(
-                self.config.data['aws.key'], 
+                self.config.data['aws.key'],
                 self.config.data['aws.secret']
             )
 
@@ -22,9 +24,9 @@ class EC2Provider(object):
                 self.config.data.get('session'),
                 'ec2'
             )
-        
+
         # location = self.config.data.get(
-        #     'ec2.key_path', 
+        #     'ec2.key_path',
         #     '{0}/.cloudseed/{1}'.format(
         #             os.path.expanduser('~'),
         #             self.config.data.get('project')
@@ -44,8 +46,8 @@ class EC2Provider(object):
             # for key in keys:
             #     if key.name == name:
             #         key.delete()
-        
-            
+
+
 
 
     def get_all_instances(self):
@@ -54,7 +56,7 @@ class EC2Provider(object):
     # def kill_all_instances(self):
     #     for r in ec2.get_all_instances():
     #         ec2.terminate_instances(r.instances[0].id)
-    
+
     # def run_instances(image_id=None, key_name='ec2-key'):
     #     reservation = self.conn.run_instances( **WEB)
     #     #reservation = ec2.run_instances(image_id='ami-bb709dd2', key_name=key_name)
