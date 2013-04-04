@@ -40,6 +40,7 @@ class EC2Provider(Loggable):
         try:
             self.verify_keys()
         except NeedsEc2Key:
+            self.log.debug('Createing EC2 key')
             self.create_key_pair()
 
     def verify_keys(self):
@@ -48,7 +49,7 @@ class EC2Provider(Loggable):
 
         if 'ec2.key_name' not in data \
         and 'ec2.key_path' not in data:
-            self.log.debug('ec2 key settings not present')
+            self.log.debug('EC2 key settings not present')
             raise NeedsEc2Key
 
         with config_key_error():
