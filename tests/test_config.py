@@ -34,7 +34,7 @@ class TestConfig(TestCase):
 
     def test_fs_config_local_config(self):
         resource = FilesystemConfig(local_config=self.config_local)
-        config = Config(resource, provider=MagicMock())
+        config = Config(resource, provider=MagicMock)
 
         self.assertTrue(config.data['project'] == 'test')
         self.assertTrue(config.data['session'] == 'ffffff')
@@ -90,7 +90,7 @@ class TestConfig(TestCase):
             local_config=self.config_local_min,
             project_config=self.config_project)
 
-        config = Config(resource, provider=MagicMock())
+        config = Config(resource, provider=MagicMock)
 
         self.assertTrue(config.data['project'] == 'test')
         self.assertTrue(config.data['session'] == 'ffffff')
@@ -102,7 +102,7 @@ class TestConfig(TestCase):
             local_config=self.config_local_min,
             global_config=self.config_global)
 
-        config = Config(resource, provider=MagicMock())
+        config = Config(resource, provider=MagicMock)
 
         self.assertTrue(config.data['project'] == 'test')
         self.assertTrue(config.data['session'] == 'ffffff')
@@ -115,7 +115,7 @@ class TestConfig(TestCase):
             project_config=self.config_project,
             global_config=self.config_global)
 
-        config = Config(resource, provider=MagicMock())
+        config = Config(resource, provider=MagicMock)
 
         self.assertTrue(config.data['project'] == 'test')
         self.assertTrue(config.data['session'] == 'ffffff')

@@ -15,7 +15,6 @@ class Config(Loggable):
         self.resource = resource
 
         if not provider:
-
             with config_key_error():
                 provider_name = resource.data['provider']
 
@@ -29,6 +28,8 @@ class Config(Loggable):
             except RuntimeError:
                 self.log.error('Unknown Config Provider %s', provider_name)
                 raise UnknownConfigProvider
+        else:
+            provider = provider(config=self)
 
         self.provider = provider
 
