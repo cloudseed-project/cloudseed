@@ -32,9 +32,6 @@ class Config(object):
 
         self.provider = provider
 
-    def activate_profile(self, value):
-        self.resource.activate_profile(value)
-
     @property
     def data(self):
         return self.resource.data
@@ -42,6 +39,14 @@ class Config(object):
     @property
     def session(self):
         return self.resource.session
+
+    def update_config(self, data):
+        self.log.debug('Updating config with %s', data)
+        self.resource.update_config(data)
+
+    def activate_profile(self, value):
+        self.log.debug('Activating profile %s', value)
+        self.resource.activate_profile(value)
 
 
 class MemoryConfig(Loggable):
@@ -57,6 +62,9 @@ class MemoryConfig(Loggable):
     def activate_profile(self, value):
         self.session['profile'] = value
 
+    def update_config(self, data):
+        self.data.update(data)
+
 
 class FilesystemConfig(Loggable):
 
@@ -67,12 +75,14 @@ class FilesystemConfig(Loggable):
         session_config=None,
         profile_config=None):
 
-        self.log.debug('Loading configuration')
+        self.local_config = local_config
+
         self.data = self.config_for(
             local_config,
             project_config,
             global_config)
 
+        self.log.debug('Loading session data')
         if session_config:
             self.session = self.load_paths([session_config])
         else:
@@ -86,6 +96,7 @@ class FilesystemConfig(Loggable):
 
         profile_key = self.session.setdefault('profile', None)
 
+        self.log.debug('Loading profile data')
         if profile_config:
             profile_key = os.path.basename(profile_config)
             self.session['profile'] = profile_key
@@ -96,6 +107,20 @@ class FilesystemConfig(Loggable):
                 profile_key)
 
             self.profile = self.load_paths(profile_paths)
+
+    def update_config(self, data):
+
+        self.data.update(data)
+
+        self.log.debug('Reading local config for merge %s', self.local_config)
+        with open(self.local_config) as f:
+            config = yaml.load(f)
+
+        config.update(data)
+
+        self.log.debug('Writing merged config %s to %s', config, self.local_config)
+        with open(self.local_config, 'w') as f:
+            f.write(yaml.dump(config, default_flow_style=False))
 
     def activate_profile(self, value):
 
@@ -139,6 +164,7 @@ class FilesystemConfig(Loggable):
         return [project_profile, local_profile]
 
     def load_paths(self, paths):
+        self.log.debug('Loading paths %s', paths)
         data = {}
 
         for path in paths:
@@ -151,10 +177,10 @@ class FilesystemConfig(Loggable):
         return data
 
     def config_for(self, local_config, project_config=None, global_config=None):
+        self.log.debug('Loading configuration')
         global_data = {}
         project_data = {}
         local_data = {}
-
 
         user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
         self.log.debug('User dir %s', user_dir)
