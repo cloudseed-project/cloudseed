@@ -1,6 +1,4 @@
 ec2.key: ff0000
-ec2.key_name: test_ffffff_ec2
-ec2.key_path: /Users/dinopetrone/.cloudseed/test
 project: test
 provider: ec2
 session: ffffff

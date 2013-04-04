@@ -38,7 +38,6 @@ class TestEC2Provider(unittest.TestCase):
         resource = FilesystemConfig(local_config=self.config_ec2_no_key)
         resource.data['aws.key'] = os.environ['AWS_ACCESS_KEY_ID']
         resource.data['aws.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
-
         config = Config(resource, provider=MagicMock())
         ec2 = EC2Provider(config)
         if not config.data.get('ec2.key_name', False) and not config.data.get('ec2.key_path', False):
