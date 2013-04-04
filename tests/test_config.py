@@ -3,7 +3,7 @@ from unittest import TestCase
 from mock import MagicMock
 from cloudseed.config import Config
 from cloudseed.config import FilesystemConfig
-from cloudseed.config import DictConfig
+from cloudseed.config import MemoryConfig
 from cloudseed.exceptions import (
     NoProviderInConfig, ConfigNotFound, UnknownConfigProvider,
     NoProjectInConfig
@@ -54,10 +54,10 @@ class TestConfig(TestCase):
             FilesystemConfig,
             local_config=self.config_local_no_project)
 
-    def test_dict_config_no_project(self):
+    def test_mem_config_no_project(self):
         self.assertRaises(
             NoProjectInConfig,
-            DictConfig,
+            MemoryConfig,
             {})
 
     def test_fs_config_no_provider(self):
@@ -74,17 +74,17 @@ class TestConfig(TestCase):
             Config,
             FilesystemConfig(local_config=self.config_local))
 
-    def test_dict_config_no_provider(self):
+    def test_mem_config_no_provider(self):
         self.assertRaises(
             NoProviderInConfig,
             Config,
-            DictConfig({'project': 'foo'}))
+            MemoryConfig({'project': 'foo'}))
 
-    def test_dict_config_unknown_provider(self):
+    def test_mem_config_unknown_provider(self):
         self.assertRaises(
             UnknownConfigProvider,
             Config,
-            DictConfig({'project': 'foo', 'provider': 'foo'}))
+            MemoryConfig({'project': 'foo', 'provider': 'foo'}))
 
     def test_fs_project_config(self):
         resource = FilesystemConfig(
