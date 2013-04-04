@@ -14,4 +14,4 @@ class UnknownConfigProvider(CloudseedError):
 
 
 class MissingConfigKey(KeyError, CloudseedError):
-    '''Missing Required config key'''
+    '''Missing required config key'''
