@@ -25,6 +25,12 @@ class EC2Provider(object):
                 'ec2'
             )
 
+        # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv #
+        ###################################################
+        # filename = add_key_for_config(key, self.config) #
+        ###################################################
+        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
         # location = self.config.data.get(
         #     'ec2.key_path',
         #     '{0}/.cloudseed/{1}'.format(
