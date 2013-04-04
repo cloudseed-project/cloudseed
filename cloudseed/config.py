@@ -127,18 +127,24 @@ class FilesystemConfig(Loggable):
         profile_key = self.session.setdefault('profile', None)
 
         if value != profile_key:
+            self.log.debug('Updating session profile to %s', value)
+
             profile_paths = self.profile_paths(
                 self.data['project'],
                 value)
 
+            self.log.debug('Loading profile data for %s', value)
             self.profile = self.load_paths(profile_paths)
 
             session_id = self.data.setdefault('session', uuid.uuid4().hex)
+
             self.session['profile'] = value
 
             session_path = self.session_paths(
                 self.data['project'],
                 session_id)[0]
+
+            self.log.debug('Writing active profile to session %s', session_path)
 
             with open(session_path, 'w') as f:
                 f.write(yaml.dump(self.session, default_flow_style=False))
