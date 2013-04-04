@@ -7,6 +7,7 @@ from cloudseed.exceptions import\
     (KeyAndPairAlreadyExist, MissingPemAtSpecifiedPath)
 from cloudseed.utils.logging import Loggable
 
+
 class EC2Provider(Loggable):
 
     def __init__(self, config):
@@ -22,7 +23,7 @@ class EC2Provider(Loggable):
                     self.config.data['aws.secret']
                 )
 
-    
+
 
     def create_key_pair(self):
         name = '{0}_{1}_{2}'.format(
@@ -56,15 +57,15 @@ class EC2Provider(Loggable):
 
         self.log.debug('[EC2] created key_pair with name: %s', name)
         key_pair = self.conn.create_key_pair(name)
-        
+
         filename = add_key_for_config(key_pair.material, self.config)
         self.config.update_config({'ec2.key_name':name,
                                     'ec2.key_path':location})
-        
-        
 
-              
-       
+
+
+
+
 
     def _key_exists(self, name):
         keys = self.conn.get_all_key_pairs()
