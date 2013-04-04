@@ -23,17 +23,17 @@ class EC2Provider(object):
                 'ec2'
             )
         
-        location = self.config.data.get(
-            'ec2.key_path', 
-            '{0}/.cloudseed/{1}'.format(
-                    os.path.expanduser('~'),
-                    self.config.data.get('project')
-                )
-            )
-        self.pem_file = '{0}{1}.pem'.format(location,name)
+        # location = self.config.data.get(
+        #     'ec2.key_path', 
+        #     '{0}/.cloudseed/{1}'.format(
+        #             os.path.expanduser('~'),
+        #             self.config.data.get('project')
+        #         )
+        #     )
+        # self.pem_file = '{0}{1}.pem'.format(location,name)
 
-        if not os.path.exists(location):
-            os.makedirs(location)
+        # if not os.path.exists(location):
+        #     os.makedirs(location)
         try:
             key_pair = self.conn.create_key_pair(name)
             #key_pair.material
