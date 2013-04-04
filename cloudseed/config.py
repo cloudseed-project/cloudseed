@@ -98,7 +98,7 @@ class FilesystemConfig(Loggable):
         profile_key = self.session.setdefault('profile', None)
 
         self.log.debug('Loading profile data')
-        import pdb; pdb.set_trace()
+
         if profile_config:
             profile_key = os.path.basename(profile_config)
             self.session['profile'] = profile_key
