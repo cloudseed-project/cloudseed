@@ -1,6 +1,6 @@
 import os
 import boto
-from boto.ec2.connection import EC2Connection
+from boto import ec2
 from cloudseed.security import add_key_for_config
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
@@ -21,11 +21,19 @@ class EC2Provider(Loggable):
         self._connect()
 
     def _connect(self):
+
+        cfg_region = self.config.data.get('ec2.region', 'us-east-1')
+
         with config_key_error():
-            self.conn = EC2Connection(
-                    self.config.data['aws.key'],
-                    self.config.data['aws.secret']
-                )
+            region = ec2.get_region(cfg_region,
+                aws_access_key_id=self.config.data['aws.key'],
+                aws_secret_access_key=self.config.data['aws.secret'])
+
+        with config_key_error():
+            self.conn = boto.connect_ec2(
+                aws_access_key_id=self.config.data['aws.key'],
+                aws_secret_access_key=self.config.data['aws.secret'],
+                region=region)
 
     def bootstrap(self):
 

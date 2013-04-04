@@ -1,4 +1,6 @@
 import os
+import tempfile
+import uuid
 import unittest
 from mock import MagicMock
 from cloudseed.providers.ec2 import EC2Provider
@@ -67,6 +69,70 @@ class TestEC2Provider(unittest.TestCase):
         self.assertRaises(
             NeedsEc2Key,
             ec2.verify_keys)
+
+    def test_no_ec2_key_name(self):
+        resource = MemoryConfig({
+                'project': 'foo',
+                'provider': 'ec2',
+                'aws.key': 'foo',
+                'aws.secret': 'foo',
+                'ec2.key_path': '/foo/bar/baz.pem'})
+
+        config = Config(resource, EC2Provider)
+        ec2 = config.provider
+
+        self.assertRaises(
+            MissingConfigKey,
+            ec2.verify_keys)
+
+    def test_no_ec2_key_path(self):
+        resource = MemoryConfig({
+                'project': 'foo',
+                'provider': 'ec2',
+                'aws.key': 'foo',
+                'aws.secret': 'foo',
+                'ec2.key_name': 'foo'})
+
+        config = Config(resource, EC2Provider)
+        ec2 = config.provider
+
+        self.assertRaises(
+            MissingConfigKey,
+            ec2.verify_keys)
+
+    def test_no_ec2_key_path_not_found(self):
+        resource = MemoryConfig({
+                'project': 'foo',
+                'provider': 'ec2',
+                'aws.key': 'foo',
+                'aws.secret': 'foo',
+                'ec2.key_name': 'foo',
+                'ec2.key_path': '/tmp/foo/bar/baz.pem'})
+
+        config = Config(resource, EC2Provider)
+        ec2 = config.provider
+
+        self.assertRaises(
+            KeyNotFound,
+            ec2.verify_keys)
+
+    @unittest.skipUnless(LIVE_EC2, 'AWS Environment not set')
+    def test_no_ec2_key_path_not_found_api(self):
+        with tempfile.NamedTemporaryFile() as f:
+            resource = MemoryConfig({
+                    'project': 'foo',
+                    'provider': 'ec2',
+                    'aws.key': os.environ['AWS_ACCESS_KEY_ID'],
+                    'aws.secret': os.environ['AWS_SECRET_ACCESS_KEY'],
+                    'ec2.key_name': uuid.uuid4().hex,
+                    'ec2.key_path': f.name})
+
+            config = Config(resource, EC2Provider)
+            ec2 = config.provider
+
+            self.assertRaises(
+                KeyNotFound,
+                ec2.verify_keys)
 
     # @unittest.skipUnless(LIVE_EC2, 'AWS Environment not set')
     # def test_ec2provider_create_key_pair_with_key(self):
