@@ -11,11 +11,12 @@ from cloudseed.config import FilesystemConfig
 def cloudseed_main():
     '''
 usage:
-  cloudseed [--version] [--help] [-c|--config=<config>]
+  cloudseed [--version] [--help] [-c|--config=<config>] [-p|--profile=<profile>]
             <command> [<args>...]
 
 options:
-  -c --config=<config>    Profile to use [default: ./.cloudseed/config]
+  -c --config=<config>    Config to use [default: ./.cloudseed/config]
+  -p --profile=<profile>  Profile to use
   -h --help               Show this screen.
   --version               Show version.
 
@@ -37,7 +38,14 @@ common commands:
         from cloudseed.commands import initialize
         initialize.run(argv)
     else:
-        config = Config(FilesystemConfig(args['--config'][0]))
+
+        try:
+            profile = args['--profile'][0]
+        except IndexError:
+            profile = None
+
+        config = Config(FilesystemConfig(local_config=args['--config'][0],
+                                        profile_config=profile))
 
         if command == 'bootstrap':
             from cloudseed.commands import bootstrap
