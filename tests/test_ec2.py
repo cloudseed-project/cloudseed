@@ -18,9 +18,10 @@ class TestEC2Provider(unittest.TestCase):
     @unittest.skipUnless(LIVE_EC2, 'AWS Environment not set')
     def test_get_all_instances(self):
         resource = FilesystemConfig(local_config=self.config_ec2)
+        resource.data['aws.key'] = 'asdf'
+        resource.data['aws.secret'] = 'asdf'
+
         config = Config(resource, provider=MagicMock())
-        config.data['aws.key'] = 'asdf'
-        config.data['aws.secret'] = 'asdf'
 
         try:
             config.data['aws.key'] = os.environ['AWS_ACCESS_KEY_ID']
