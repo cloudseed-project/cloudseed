@@ -30,11 +30,11 @@ class EC2Provider(Loggable):
     def bootstrap(self):
 
         try:
-            self._verify_keys()
+            self.verify_keys()
         except NeedsEc2Key:
             self.create_key_pair()
 
-    def _verify_keys(self):
+    def verify_keys(self):
 
         data = self.config.data
 
