@@ -20,3 +20,11 @@ class UnknownConfigProvider(CloudseedError):
 
 class MissingConfigKey(KeyError, CloudseedError):
     '''Missing required config key'''
+
+class KeyAndPairAlreadyExist(CloudseedError):
+    ''' ec2 keypair already exists '''
+
+class MissingPemAtSpecifiedPath(CloudseedError):
+    ''' missing pem file that should exists '''
+
+    
