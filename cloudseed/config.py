@@ -34,26 +34,49 @@ class Config(object):
         return self.__resource.data
 
     @property
-    def provider(self):
-        return self.__provider
+    def session(self):
+        return self.__resource.session
 
     @property
-    def profile(self):
+    def provider(self):
         return self.__provider
 
 
 class DictConfig(object):
-    def __init__(self, data):
+    def __init__(self, data, session=None):
 
         if 'project' not in data:
             raise NoProjectInConfig
 
         self.data = data
+        self.session = {} if session is None else session
 
 
 class FilesystemConfig(object):
 
     def __init__(self, local_config, project_config=None, global_config=None):
+        self.data = self.config_for(
+            local_config,
+            project_config,
+            global_config)
+
+        self.session = self.session_for(self.data)
+
+    def session_for(self, config):
+        try:
+            session_id = config['session']
+        except KeyError:
+            return {}
+
+        path = '{0}/{1}/session_{2}'.format(
+            os.path.expanduser('~'),
+            config['project'],
+            session_id)
+
+        with open(path) as f:
+            return yaml.load(f)
+
+    def config_for(self, local_config, project_config=None, global_config=None):
         global_data = {}
         project_data = {}
         local_data = {}
