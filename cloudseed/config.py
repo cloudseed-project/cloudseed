@@ -41,9 +41,17 @@ class Config(Loggable):
     def session(self):
         return self.resource.session
 
+    @property
+    def profile(self):
+        return self.resource.profile
+
     def update_config(self, data):
         self.log.debug('Updating config with %s', data)
         self.resource.update_config(data)
+
+    def update_session(self, data):
+        self.log.debug('Updating session with %s', data)
+        self.resource.update_session(data)
 
     def activate_profile(self, value):
         self.log.debug('Activating profile: %s', value)
@@ -65,6 +73,9 @@ class MemoryConfig(Loggable):
 
     def update_config(self, data):
         self.data.update(data)
+
+    def update_session(self, data):
+        self.session.update(data)
 
 
 class FilesystemConfig(Loggable):
@@ -132,6 +143,26 @@ class FilesystemConfig(Loggable):
         self.log.debug('Writing merged config %s to %s', config, self.local_config)
         with open(self.local_config, 'w') as f:
             f.write(yaml.dump(config, default_flow_style=False))
+
+    def update_session(self, data):
+
+        self.session.update(data)
+
+        path = self.session_paths(
+            self.data['project'],
+            self.data['session'])[0]
+
+        self.log.debug('Reading local session for merge %s', path)
+
+        with open(path) as f:
+            session = yaml.load(f)
+
+        session.update(data)
+
+        self.log.debug('Writing merged session %s to %s', session, path)
+
+        with open(path, 'w') as f:
+            f.write(yaml.dump(session, default_flow_style=False))
 
     def activate_profile(self, value):
         profile_key = self.session.setdefault('profile', None)
