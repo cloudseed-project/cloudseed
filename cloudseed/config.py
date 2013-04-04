@@ -26,20 +26,16 @@ class Config(object):
             except RuntimeError:
                 raise UnknownConfigProvider
 
-        self.__provider = provider
-        self.__resource = resource
+        self.provider = provider
+        self.resource = resource
 
     @property
     def data(self):
-        return self.__resource.data
+        return self.resource.data
 
     @property
     def session(self):
-        return self.__resource.session
-
-    @property
-    def provider(self):
-        return self.__provider
+        return self.resource.session
 
 
 class DictConfig(object):
