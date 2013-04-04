@@ -5,8 +5,7 @@ from stevedore import driver
 from cloudseed.utils.logging import Loggable
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
-    ConfigNotFound, UnknownConfigProvider,
-    NoProjectInConfig
+    ConfigNotFound, UnknownConfigProvider
 )
 
 
@@ -53,8 +52,8 @@ class Config(Loggable):
 class MemoryConfig(Loggable):
     def __init__(self, data, session=None, profile=None):
 
-        if 'project' not in data:
-            raise NoProjectInConfig
+        with config_key_error():
+            data['project']
 
         self.data = data
         self.session = {} if session is None else session
@@ -197,11 +196,9 @@ class FilesystemConfig(Loggable):
         except IOError:
             raise ConfigNotFound
 
-        try:
+        with config_key_error():
             project = local_data['project']
             self.log.debug('Project name is: %s', project)
-        except KeyError:
-            raise NoProjectInConfig
 
         if not project_config:
             project_config = '{0}/{1}/config'.format(user_dir, project)
