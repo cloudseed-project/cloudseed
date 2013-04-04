@@ -38,7 +38,7 @@ class Config(object):
         return self.resource.session
 
 
-class DictConfig(object):
+class MemoryConfig(object):
     def __init__(self, data, session=None):
 
         if 'project' not in data:
@@ -74,9 +74,9 @@ class FilesystemConfig(object):
 
         session_id = config['session']
 
-        path = '{0}/{1}/session_{2}'.format(
+        path = '{0}/.cloudseed/{1}/session_{2}'.format(
             os.path.expanduser('~'),
-            config['project'],
+            self.data['project'],
             session_id)
 
         return path
