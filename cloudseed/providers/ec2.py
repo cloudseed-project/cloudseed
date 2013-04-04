@@ -29,7 +29,6 @@ class EC2Provider(Loggable):
                 aws_access_key_id=self.config.data['aws.key'],
                 aws_secret_access_key=self.config.data['aws.secret'])
 
-        with config_key_error():
             self.conn = boto.connect_ec2(
                 aws_access_key_id=self.config.data['aws.key'],
                 aws_secret_access_key=self.config.data['aws.secret'],
