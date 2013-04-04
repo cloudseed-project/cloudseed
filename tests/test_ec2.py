@@ -1,9 +1,9 @@
+import os
 from unittest import TestCase
-from cloudseed.providers.ec2 import EC2Provider
 from mock import MagicMock
+from cloudseed.providers.ec2 import EC2Provider
 from cloudseed.config import Config
 from cloudseed.config import FilesystemConfig
-import os
 
 
 class TestEC2Provider(TestCase):
