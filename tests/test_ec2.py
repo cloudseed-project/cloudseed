@@ -21,7 +21,7 @@ class TestEC2Provider(unittest.TestCase):
         resource.data['aws.key'] = os.environ['AWS_ACCESS_KEY_ID']
         resource.data['aws.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
 
-        config = Config(resource, provider=MagicMock())
+        config = Config(    resource, provider=MagicMock())
 
         ec2 = EC2Provider(config)
 

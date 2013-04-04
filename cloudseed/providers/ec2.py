@@ -29,13 +29,19 @@ class EC2Provider(object):
         self.pem_file = '{0}{1}.pem'.format(location,name)
         if not os.path.exists(location):
             os.makedirs(location)
+        import pdb; pdb.set_trace()
         # try:
         #     key_pair = self.conn.create_key_pair(name)
         #     key_pair.save(location)
         # except:
         #     #already exists
-        #     self.log.warning('[ec2provider] pem file already created')
-        #     pass
+        #     #self.log.warning('[ec2provider] pem file already created')
+        #     keys = self.conn.get_all_key_pairs()
+        #     for key in keys:
+        #         if key.name == name:
+        #             import pdb; pdb.set_trace()
+        #             #key.save(location)
+            
 
 
     # def get_all_instances(self):

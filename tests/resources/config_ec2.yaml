@@ -1,4 +1,4 @@
 project: test
 session: ffffff
 ec2.key: ff0000
-ec2.key_path: ~/.cloudseed/test_overide/
+ec2.key_path: ~/.cloudseed/
