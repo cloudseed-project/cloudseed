@@ -27,8 +27,8 @@ class TestEC2Provider(unittest.TestCase):
     # @unittest.skipUnless(LIVE_EC2, 'AWS Environment not set')
     # def test_ec2provider_create_key_pair_with_key(self):
     #     resource = FilesystemConfig(local_config=self.config_ec2_with_key)
-    #     resource.data['aws.key'] = os.environ['AWS_ACCESS_KEY_ID']
-    #     resource.data['aws.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
+    #     resource.data['ec2.key'] = os.environ['AWS_ACCESS_KEY_ID']
+    #     resource.data['ec2.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
     #     config = Config(resource, provider=MagicMock())
 
     #     ec2 = EC2Provider(config)
@@ -45,7 +45,7 @@ class TestEC2Provider(unittest.TestCase):
             Config(MemoryConfig({
                 'project': 'foo',
                 'provider': 'ec2',
-                'aws.secret': 'foo'}), provider=MagicMock))
+                'ec2.secret': 'foo'}), provider=MagicMock))
 
     def test_no_aws_secret(self):
         self.assertRaises(
@@ -54,14 +54,14 @@ class TestEC2Provider(unittest.TestCase):
             Config(MemoryConfig({
                 'project': 'foo',
                 'provider': 'ec2',
-                'aws.key': 'foo'}), provider=MagicMock))
+                'ec2.key': 'foo'}), provider=MagicMock))
 
     def test_no_ec2_keys(self):
         resource = MemoryConfig({
                 'project': 'foo',
                 'provider': 'ec2',
-                'aws.key': 'foo',
-                'aws.secret': 'foo'})
+                'ec2.key': 'foo',
+                'ec2.secret': 'foo'})
 
         config = Config(resource, EC2Provider)
         ec2 = config.provider
@@ -74,8 +74,8 @@ class TestEC2Provider(unittest.TestCase):
         resource = MemoryConfig({
                 'project': 'foo',
                 'provider': 'ec2',
-                'aws.key': 'foo',
-                'aws.secret': 'foo',
+                'ec2.key': 'foo',
+                'ec2.secret': 'foo',
                 'ec2.key_path': '/foo/bar/baz.pem'})
 
         config = Config(resource, EC2Provider)
@@ -89,8 +89,8 @@ class TestEC2Provider(unittest.TestCase):
         resource = MemoryConfig({
                 'project': 'foo',
                 'provider': 'ec2',
-                'aws.key': 'foo',
-                'aws.secret': 'foo',
+                'ec2.key': 'foo',
+                'ec2.secret': 'foo',
                 'ec2.key_name': 'foo'})
 
         config = Config(resource, EC2Provider)
@@ -104,8 +104,8 @@ class TestEC2Provider(unittest.TestCase):
         resource = MemoryConfig({
                 'project': 'foo',
                 'provider': 'ec2',
-                'aws.key': 'foo',
-                'aws.secret': 'foo',
+                'ec2.key': 'foo',
+                'ec2.secret': 'foo',
                 'ec2.key_name': 'foo',
                 'ec2.key_path': '/tmp/foo/bar/baz.pem'})
 
@@ -122,8 +122,8 @@ class TestEC2Provider(unittest.TestCase):
             resource = MemoryConfig({
                     'project': 'foo',
                     'provider': 'ec2',
-                    'aws.key': os.environ['AWS_ACCESS_KEY_ID'],
-                    'aws.secret': os.environ['AWS_SECRET_ACCESS_KEY'],
+                    'ec2.key': os.environ['AWS_ACCESS_KEY_ID'],
+                    'ec2.secret': os.environ['AWS_SECRET_ACCESS_KEY'],
                     'ec2.key_name': uuid.uuid4().hex,
                     'ec2.key_path': f.name})
 
@@ -137,8 +137,8 @@ class TestEC2Provider(unittest.TestCase):
     # @unittest.skipUnless(LIVE_EC2, 'AWS Environment not set')
     # def test_ec2provider_create_key_pair_with_key(self):
     #     resource = FilesystemConfig(local_config=self.config_ec2_no_key)
-    #     resource.data['aws.key'] = os.environ['AWS_ACCESS_KEY_ID']
-    #     resource.data['aws.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
+    #     resource.data['ec2.key'] = os.environ['AWS_ACCESS_KEY_ID']
+    #     resource.data['ec2.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
 
     #     config = Config(resource, provider=EC2Provider)
     #     ec2 = config.provider

@@ -25,13 +25,14 @@ class EC2Provider(Loggable):
         cfg_region = self.config.data.get('ec2.region', 'us-east-1')
 
         with config_key_error():
+            import pdb; pdb.set_trace()
             region = ec2.get_region(cfg_region,
-                aws_access_key_id=self.config.data['aws.key'],
-                aws_secret_access_key=self.config.data['aws.secret'])
+                aws_access_key_id=self.config.data['ec2.key'],
+                aws_secret_access_key=self.config.data['ec2.secret'])
 
             self.conn = boto.connect_ec2(
-                aws_access_key_id=self.config.data['aws.key'],
-                aws_secret_access_key=self.config.data['aws.secret'],
+                aws_access_key_id=self.config.data['ec2.key'],
+                aws_secret_access_key=self.config.data['ec2.secret'],
                 region=region)
 
     def bootstrap(self):
