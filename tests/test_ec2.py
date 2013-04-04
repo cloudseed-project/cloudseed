@@ -11,10 +11,14 @@ class TestEC2Provider(TestCase):
         self.config_ec2 = '{0}/config_ec2.yaml'.format(base_path)
 
     def test_get_all_instances(self):
-        
         config = Config(local_config=self.config_ec2, provider=MagicMock())
-        config.data['aws.key'] = 'asdf'
-        config.data['aws.secret'] = 'asdf'
+        try:
+            config.data['aws.key'] = os.environ['AWS_ACCESS_KEY_ID']
+            config.data['aws.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
+        except:
+            #self.log.warning('need to set both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars')
+            return
+
         ec2 = EC2Provider(config)
         
 

@@ -3,3 +3,4 @@
 build/
 dist/
 cloudseed.egg-info/
+.DS_Store
