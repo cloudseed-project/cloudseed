@@ -6,11 +6,11 @@ class EC2Provider(object):
 
     def __init__(self, config):
         self.config = config
-        self._connect()
-        self._create_key_pair()
+        # self._connect()
+        # self._create_key_pair()
         
     def _connect(self):
-        self.conn = EC2Connection(self.config['aws_key'], self.config['aws_secret'])
+        self.conn = EC2Connection(self.config['aws.key'], self.config['aws.secret'])
 
     def _create_key_pair(self):
         name = self.config.get('name', 'ec2-key')
