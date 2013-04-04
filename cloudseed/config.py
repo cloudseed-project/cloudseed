@@ -5,7 +5,7 @@ from stevedore import driver
 from cloudseed.utils.logging import Loggable
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
-    ConfigNotFound, UnknownConfigProvider
+    ConfigNotFound, UnknownConfigProvider, InvalidProfile
 )
 
 
@@ -133,7 +133,13 @@ class FilesystemConfig(Loggable):
                 value)
 
             self.log.debug('Loading profile data for: %s', value)
-            self.profile = self.load_paths(profile_paths)
+            profile = self.load_paths(profile_paths)
+
+            if not profile:
+                self.log.error('No profile information found in %s', profile_paths)
+                raise InvalidProfile
+            else:
+                self.profile = profile
 
             session_id = self.data.setdefault('session', uuid.uuid4().hex)
 
