@@ -98,6 +98,7 @@ class FilesystemConfig(Loggable):
         profile_key = self.session.setdefault('profile', None)
 
         self.log.debug('Loading profile data')
+
         if profile_config:
             profile_key = os.path.basename(profile_config)
             self.session['profile'] = profile_key
@@ -180,7 +181,7 @@ class FilesystemConfig(Loggable):
 
         user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
         project_profile = '{0}/{1}/{2}'.format(user_dir, project, value)
-        local_profile = './cloudseed/{0}'.format(value)
+        local_profile = './.cloudseed/{0}'.format(value)
 
         return [project_profile, local_profile]
 

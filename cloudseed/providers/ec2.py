@@ -1,6 +1,7 @@
 import os
 import boto
 from boto import ec2
+from boto.exception import EC2ResponseError
 from cloudseed.security import add_key_for_config
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
@@ -40,6 +41,7 @@ class EC2Provider(Loggable):
         try:
             self.verify_keys()
         except NeedsEc2Key:
+            self.log.debug('Createing EC2 key')
             self.create_key_pair()
 
         self._initialize_security_groups()
@@ -52,7 +54,7 @@ class EC2Provider(Loggable):
 
         if 'ec2.key_name' not in data \
         and 'ec2.key_path' not in data:
-            self.log.debug('ec2 key settings not present')
+            self.log.debug('EC2 key settings not present')
             raise NeedsEc2Key
 
         with config_key_error():
@@ -95,6 +97,26 @@ class EC2Provider(Loggable):
             raise KeyNotFound()
             return
 
+        # self._delete_key_with_name(name)
+
+        # ec2_key_exists = self._ec2_key_exists(name)
+        # location = '{0}/.cloudseed/{1}'.format(
+        #             os.path.expanduser('~'),
+        #             self.config.data.get('project')
+        #         )
+        # pem_file = '{0}/{1}'.format(location, name)
+
+        # if os.path.exists(pem_file) and ec2_key_exists:
+        #     self.log.debug('[EC2] already created a key, all is well')
+        #     raise KeyAndPairAlreadyExist()
+        #     return
+        # elif not os.path.exists(pem_file) and ec2_key_exists:
+        #     self.log.debug('[EC2] key is created, but no pem file...get it from someone who made it')
+        #     self.log.debug('[EC2] Alternatively, you can delete the key, and remake it')
+        #     #self._delete_key_with_name(name)
+        #     raise KeyNotFound()
+        #     return
+
         self.log.debug('[EC2] created key_pair with name: %s', name)
         key_pair = self.conn.create_key_pair(name)
 
@@ -103,13 +125,14 @@ class EC2Provider(Loggable):
                                     'ec2.key_path':location})
         
 
-    def _ec2_key_exists(self, name):
-        keys = self.conn.get_all_key_pairs()
-        for key in keys:
-            if key.name == name:
-                return True
-        return False
 
+
+    def _ec2_key_exists(self, name):
+        try:
+            self.conn.get_all_key_pairs([name])
+            return True
+        except EC2ResponseError:
+            return False
 
     def _create_pair_by_name(self,name):
         return self.conn.create_key_pair(name)
