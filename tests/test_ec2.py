@@ -24,6 +24,8 @@ class TestEC2Provider(unittest.TestCase):
         config = Config(    resource, provider=MagicMock())
 
         ec2 = EC2Provider(config)
+        instances = ec2.get_all_instances()
+        
 
 
 

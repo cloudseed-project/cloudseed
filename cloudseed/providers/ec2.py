@@ -6,46 +6,50 @@ class EC2Provider(object):
 
     def __init__(self, config):
         self.pem_file = None
-        self.config = config.data
+        self.config = config
         self._connect()
         self._create_key_pair()
         
     def _connect(self):
         self.conn = EC2Connection(
-                self.config['aws.key'], 
-                self.config['aws.secret']
+                self.config.data['aws.key'], 
+                self.config.data['aws.secret']
             )
 
     def _create_key_pair(self):
         name = '{0}_{1}_{2}'.format(
-                self.config.get('project'),
-                self.config.get('session'),
+                self.config.data.get('project'),
+                self.config.data.get('session'),
                 'ec2'
             )
         
-        location = self.config.get(
+        location = self.config.data.get(
             'ec2.key_path', 
-            '~/.cloudseed/{0}'.format(self.config.get('project')))
+            '{0}/.cloudseed/{1}'.format(
+                    os.path.expanduser('~'),
+                    self.config.data.get('project')
+                )
+            )
         self.pem_file = '{0}{1}.pem'.format(location,name)
+
         if not os.path.exists(location):
             os.makedirs(location)
-        import pdb; pdb.set_trace()
-        # try:
-        #     key_pair = self.conn.create_key_pair(name)
-        #     key_pair.save(location)
-        # except:
-        #     #already exists
-        #     #self.log.warning('[ec2provider] pem file already created')
-        #     keys = self.conn.get_all_key_pairs()
-        #     for key in keys:
-        #         if key.name == name:
-        #             import pdb; pdb.set_trace()
-        #             #key.save(location)
+        try:
+            key_pair = self.conn.create_key_pair(name)
+            #key_pair.material
+            #key_pair.save(location)
+        except:
+            pass
+            # keys = self.conn.get_all_key_pairs()
+            # for key in keys:
+            #     if key.name == name:
+            #         key.delete()
+        
             
 
 
-    # def get_all_instances(self):
-    #     return self.conn.get_all_instances()
+    def get_all_instances(self):
+        return self.conn.get_all_instances()
 
     # def kill_all_instances(self):
     #     for r in ec2.get_all_instances():
