@@ -10,8 +10,8 @@ class EC2Provider(object):
     def __init__(self, config):
         self.pem_file = None
         self.config = config
-        self._connect()
-        self._create_key_pair()
+        #self._connect()
+        #self._create_key_pair()
 
     def _connect(self):
         with config_key_error():

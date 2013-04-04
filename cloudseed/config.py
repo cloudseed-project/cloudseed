@@ -5,7 +5,7 @@ from stevedore import driver
 from cloudseed.utils.logging import Loggable
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
-    ConfigNotFound, UnknownConfigProvider, InvalidProfile
+    ConfigNotFound, UnknownConfigProvider, InvalidProfile,
 )
 
 
@@ -102,11 +102,20 @@ class FilesystemConfig(Loggable):
             self.session['profile'] = profile_key
             self.profile = self.load_paths([profile_config])
         else:
-            profile_paths = self.profile_paths(
-                self.data['project'],
-                profile_key)
+            if profile_key:
+                profile_paths = self.profile_paths(
+                    self.data['project'],
+                    profile_key)
 
-            self.profile = self.load_paths(profile_paths)
+                profile = self.load_paths(profile_paths)
+
+                if not profile:
+                    self.log.error('No profile information found in %s', profile_paths)
+                    raise InvalidProfile
+
+                self.profile = profile
+            else:
+                self.profile = {}
 
     def update_config(self, data):
 
