@@ -26,13 +26,13 @@ def run(argv):
     local_dir = '{0}/{1}'.format(cwd, '.cloudseed')
     session_id = uuid.uuid4().hex
 
-    if not os.path.exists(user_dir):
+    if not os.path.isdir(user_dir):
         os.mkdir(user_dir)
 
-    if not os.path.exists(project_dir):
+    if not os.path.isdir(project_dir):
         os.mkdir(project_dir)
 
-    if not os.path.exists(local_dir):
+    if not os.path.isdir(local_dir):
         os.mkdir(local_dir)
 
     config = {

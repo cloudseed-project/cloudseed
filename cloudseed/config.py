@@ -112,7 +112,9 @@ class FilesystemConfig(object):
         except IOError:
             pass
 
-        self.data = {}
-        self.data.update(global_data)
-        self.data.update(project_data)
-        self.data.update(local_data)
+        data = {}
+        data.update(global_data)
+        data.update(project_data)
+        data.update(local_data)
+
+        return data
