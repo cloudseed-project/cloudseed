@@ -140,9 +140,16 @@ class TestEC2Provider(unittest.TestCase):
         resource.data['ec2.key'] = os.environ['AWS_ACCESS_KEY_ID']
         resource.data['ec2.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
 
+        
+
+
         config = Config(resource, provider=EC2Provider)
-        profile = 'development'
-        config.activate_profile(profile)
+
+        config.profile = {'bootstrap':{
+                'image':'ami-3d4ff254',
+                'size': 't1.micro'
+            }
+        }
         ec2 = config.provider
 
         ec2.bootstrap()

@@ -42,6 +42,7 @@ class EC2Provider(Loggable):
         except NeedsEc2Key:
             self.create_key_pair()
 
+        self._initialize_security_groups()
         self._build_master()
 
 
@@ -122,16 +123,41 @@ class EC2Provider(Loggable):
             if key.name == name:
                 key.delete()
 
+    
+    def _initialize_security_groups(self):
+        pass
+
     def _build_master(self):
         key_name = self.config.data.get('ec2.key_name')
-        #reservation = self.conn.run_instances(image_id='ami-bb709dd2', key_name=key_name)
-        
+        profile = self.config.profile.get('bootstrap')
+        {'image': 'ami-bb709dd2', 
+        'size': 't1.micro'}
+
+        with config_key_error():
+            image = profile['image']
+            key = self.config.data['ec2.key_name']
+            size = profile['size']
+            security_group = 'cloudseed-{0}'.format(self.config.data['project'])
 
 
 
-    # def kill_all_instances(self):
-    #     for r in ec2.get_all_instances():
-    #         ec2.terminate_instances(r.instances[0].id)
+        # reservation = self.conn.run_instances(
+        #         image,
+        #         key_name=key,
+        #         instance_type=size,
+        #         security_groups=[security_group]
+        #     )
+        #import pdb; pdb.set_trace()
+        #self.kill_all_instances()
+
+
+    def kill_all_instances(self):
+        for r in self.conn.get_all_instances():
+            self.conn.terminate_instances(r.instances[0].id)
+            print(r.instances[0].id)
+            print(r.instances[0].state)
+            
+            
 
     # def run_instances(image_id=None, key_name='ec2-key'):
     #     reservation = self.conn.run_instances( **WEB)
