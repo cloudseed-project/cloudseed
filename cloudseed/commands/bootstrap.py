@@ -14,5 +14,4 @@ def run(config, argv):
     args = docopt(__doc__, argv=argv)
     profile = args['<profile>']
     config.activate_profile(profile)
-    provider = config.provider
-    # provider.?????
+    config.provider.bootstrap()

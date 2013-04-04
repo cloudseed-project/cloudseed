@@ -24,7 +24,7 @@ class MissingConfigKey(KeyError, CloudseedError):
 class KeyAndPairAlreadyExist(CloudseedError):
     ''' ec2 keypair already exists '''
 
-class MissingPemAtSpecifiedPath(CloudseedError):
+class KeyNotFound(CloudseedError):
     ''' missing pem file that should exists '''
 
-    
+

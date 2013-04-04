@@ -3,9 +3,14 @@ import boto
 from boto.ec2.connection import EC2Connection
 from cloudseed.security import add_key_for_config
 from cloudseed.utils.exceptions import config_key_error
-from cloudseed.exceptions import\
-    (KeyAndPairAlreadyExist, MissingPemAtSpecifiedPath)
+from cloudseed.exceptions import (
+    CloudseedError, MissingConfigKey, KeyAndPairAlreadyExist, KeyNotFound
+)
 from cloudseed.utils.logging import Loggable
+
+
+class NeedsEc2Key(CloudseedError):
+    ''' Needs Ec2 Keys'''
 
 
 class EC2Provider(Loggable):
@@ -15,7 +20,6 @@ class EC2Provider(Loggable):
         self.config = config
         self._connect()
 
-
     def _connect(self):
         with config_key_error():
             self.conn = EC2Connection(
@@ -23,7 +27,36 @@ class EC2Provider(Loggable):
                     self.config.data['aws.secret']
                 )
 
+    def bootstrap(self):
 
+        try:
+            self._verify_keys()
+        except MissingConfigKey:
+            pass
+        except KeyNotFound:
+            pass
+        except NeedsEc2Key:
+            self.create_key_pair()
+
+    def _verify_keys(self):
+
+        data = self.config.data
+
+        if 'ec2.key_name' not in data \
+        and 'ec2.key_path' not in data:
+            raise NeedsEc2Key
+
+        try:
+            ec2_key_name = self.config.data['ec2.key_name']
+            ec2_key_path = self.config.data['ec2.key_path']
+        except KeyError as e:
+            raise MissingConfigKey(*e.args)
+
+        if not os.path.isfile(ec2_key_path):
+            raise KeyNotFound
+
+        if not self._ec2_key_exists(ec2_key_name):
+            pass
 
     def create_key_pair(self):
         name = '{0}_{1}_{2}'.format(
@@ -34,14 +67,12 @@ class EC2Provider(Loggable):
 
         self._delete_key_with_name(name)
 
-        ec2_key_exists = self._key_exists(name)
+        ec2_key_exists = self._ec2_key_exists(name)
         location = '{0}/.cloudseed/{1}'.format(
                     os.path.expanduser('~'),
                     self.config.data.get('project')
                 )
-        pem_file = '{0}/{1}'.format(location,name)
-
-
+        pem_file = '{0}/{1}'.format(location, name)
 
         if os.path.exists(pem_file) and ec2_key_exists:
             self.log.debug('[EC2] already created a key, all is well')
@@ -51,9 +82,8 @@ class EC2Provider(Loggable):
             self.log.debug('[EC2] key is created, but no pem file...get it from someone who made it')
             self.log.debug('[EC2] Alternatively, you can delete the key, and remake it')
             #self._delete_key_with_name(name)
-            raise MissingPemAtSpecifiedPath()
+            raise KeyNotFound()
             return
-
 
         self.log.debug('[EC2] created key_pair with name: %s', name)
         key_pair = self.conn.create_key_pair(name)
@@ -62,12 +92,7 @@ class EC2Provider(Loggable):
         self.config.update_config({'ec2.key_name':name,
                                     'ec2.key_path':location})
 
-
-
-
-
-
-    def _key_exists(self, name):
+    def _ec2_key_exists(self, name):
         keys = self.conn.get_all_key_pairs()
         for key in keys:
             if key.name == name:
