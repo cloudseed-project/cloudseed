@@ -5,8 +5,7 @@ from cloudseed.config import Config
 from cloudseed.config import FilesystemConfig
 from cloudseed.config import MemoryConfig
 from cloudseed.exceptions import (
-    NoProviderInConfig, ConfigNotFound, UnknownConfigProvider,
-    NoProjectInConfig
+    ConfigNotFound, UnknownConfigProvider, MissingConfigKey
 )
 
 
@@ -50,19 +49,19 @@ class TestConfig(TestCase):
 
     def test_fs_config_no_project(self):
         self.assertRaises(
-            NoProjectInConfig,
+            MissingConfigKey,
             FilesystemConfig,
             local_config=self.config_local_no_project)
 
     def test_mem_config_no_project(self):
         self.assertRaises(
-            NoProjectInConfig,
+            MissingConfigKey,
             MemoryConfig,
             {})
 
     def test_fs_config_no_provider(self):
         self.assertRaises(
-            NoProviderInConfig,
+            MissingConfigKey,
             Config,
             FilesystemConfig(local_config=self.config_local_no_provider,
                             project_config=self.config_project_empty,
@@ -76,7 +75,7 @@ class TestConfig(TestCase):
 
     def test_mem_config_no_provider(self):
         self.assertRaises(
-            NoProviderInConfig,
+            MissingConfigKey,
             Config,
             MemoryConfig({'project': 'foo'}))
 

@@ -13,7 +13,7 @@ class EC2Provider(Loggable):
         self.pem_file = None
         self.config = config
         self._connect()
-        
+
 
     def _connect(self):
         with config_key_error():
