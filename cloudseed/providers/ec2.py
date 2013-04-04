@@ -1,6 +1,7 @@
 import os
 import boto
 from boto import ec2
+from boto.exception import EC2ResponseError
 from cloudseed.security import add_key_for_config
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
@@ -25,7 +26,6 @@ class EC2Provider(Loggable):
         cfg_region = self.config.data.get('ec2.region', 'us-east-1')
 
         with config_key_error():
-            import pdb; pdb.set_trace()
             region = ec2.get_region(cfg_region,
                 aws_access_key_id=self.config.data['ec2.key'],
                 aws_secret_access_key=self.config.data['ec2.secret'])
@@ -70,40 +70,39 @@ class EC2Provider(Loggable):
                 'ec2'
             )
 
-        self._delete_key_with_name(name)
+        # self._delete_key_with_name(name)
 
-        ec2_key_exists = self._ec2_key_exists(name)
-        location = '{0}/.cloudseed/{1}'.format(
-                    os.path.expanduser('~'),
-                    self.config.data.get('project')
-                )
-        pem_file = '{0}/{1}'.format(location, name)
+        # ec2_key_exists = self._ec2_key_exists(name)
+        # location = '{0}/.cloudseed/{1}'.format(
+        #             os.path.expanduser('~'),
+        #             self.config.data.get('project')
+        #         )
+        # pem_file = '{0}/{1}'.format(location, name)
 
-        if os.path.exists(pem_file) and ec2_key_exists:
-            self.log.debug('[EC2] already created a key, all is well')
-            raise KeyAndPairAlreadyExist()
-            return
-        elif not os.path.exists(pem_file) and ec2_key_exists:
-            self.log.debug('[EC2] key is created, but no pem file...get it from someone who made it')
-            self.log.debug('[EC2] Alternatively, you can delete the key, and remake it')
-            #self._delete_key_with_name(name)
-            raise KeyNotFound()
-            return
+        # if os.path.exists(pem_file) and ec2_key_exists:
+        #     self.log.debug('[EC2] already created a key, all is well')
+        #     raise KeyAndPairAlreadyExist()
+        #     return
+        # elif not os.path.exists(pem_file) and ec2_key_exists:
+        #     self.log.debug('[EC2] key is created, but no pem file...get it from someone who made it')
+        #     self.log.debug('[EC2] Alternatively, you can delete the key, and remake it')
+        #     #self._delete_key_with_name(name)
+        #     raise KeyNotFound()
+        #     return
 
         self.log.debug('[EC2] created key_pair with name: %s', name)
         key_pair = self.conn.create_key_pair(name)
 
         filename = add_key_for_config(key_pair.material, self.config)
-        self.config.update_config({'ec2.key_name':name,
-                                    'ec2.key_path':location})
+        self.config.update_config({'ec2.key_name': name,
+                                   'ec2.key_path': filename})
 
     def _ec2_key_exists(self, name):
-        keys = self.conn.get_all_key_pairs()
-        for key in keys:
-            if key.name == name:
-                return True
-        return False
-
+        try:
+            self.conn.get_all_key_pairs([name])
+            return True
+        except EC2ResponseError:
+            return False
 
     def _create_pair_by_name(self,name):
         return self.conn.create_key_pair(name)

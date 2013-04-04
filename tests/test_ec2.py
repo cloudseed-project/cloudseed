@@ -125,7 +125,8 @@ class TestEC2Provider(unittest.TestCase):
                     'ec2.key': os.environ['AWS_ACCESS_KEY_ID'],
                     'ec2.secret': os.environ['AWS_SECRET_ACCESS_KEY'],
                     'ec2.key_name': uuid.uuid4().hex,
-                    'ec2.key_path': f.name})
+                    'ec2.key_path': f.name,
+                    'ec2.region': 'us-west-2'})
 
             config = Config(resource, EC2Provider)
             ec2 = config.provider
