@@ -8,15 +8,55 @@ from cloudseed.exceptions import (
 
 
 class Config(object):
-    def __init__(self,
-        local_config,
-        project_config=None,
-        global_config=None,
-        provider=None):
+    def __init__(self, resource, provider=None):
 
-        local_data = {}
-        project_data = {}
+        if not provider:
+            try:
+                provider_name = resource.data['provider']
+            except KeyError:
+                raise NoProviderInConfig
+
+            try:
+                em = driver.DriverManager(
+                    'com.cloudseed.providers',
+                    provider_name,
+                    invoke_on_load=True,
+                    invoke_kwds={'config': self})
+                provider = em.driver
+            except RuntimeError:
+                raise UnknownConfigProvider
+
+        self.__provider = provider
+        self.__resource = resource
+
+    @property
+    def data(self):
+        return self.__resource.data
+
+    @property
+    def provider(self):
+        return self.__provider
+
+    @property
+    def profile(self):
+        return self.__provider
+
+
+class DictConfig(object):
+    def __init__(self, data):
+
+        if 'project' not in data:
+            raise NoProjectInConfig
+
+        self.data = data
+
+
+class FilesystemConfig(object):
+
+    def __init__(self, local_config, project_config=None, global_config=None):
         global_data = {}
+        project_data = {}
+        local_data = {}
 
         user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
 
@@ -53,36 +93,3 @@ class Config(object):
         self.data.update(global_data)
         self.data.update(project_data)
         self.data.update(local_data)
-
-        if not provider:
-            try:
-                provider_name = local_data['provider']
-            except KeyError:
-                raise NoProviderInConfig
-
-            try:
-                em = driver.DriverManager(
-                    'com.cloudseed.providers',
-                    provider_name,
-                    invoke_on_load=True,
-                    invoke_kwds={'config': self})
-                provider = em.driver
-            except RuntimeError:
-                raise UnknownConfigProvider
-
-        self.__provider = provider
-
-    @property
-    def provider(self):
-        return self.__provider
-
-    @property
-    def profile(self):
-        return self.__provider
-
-
-
-class FilesystemConfig(object):
-
-    def __init__(self, local_config, project_config=None, global_config=None):
-        pass

@@ -1,9 +1,8 @@
-import sys
 from subprocess import call
 from docopt import docopt
 import cloudseed
 from cloudseed.config import Config
-from cloudseed.exceptions import (NoProviderInConfig)
+from cloudseed.config import FilesystemConfig
 
 
 def cloudseed_main():
@@ -31,13 +30,11 @@ common commands:
     command = args['<command>']
     argv = [args['<command>']] + args['<args>']
 
-
-
     if command == 'init':
         from cloudseed.commands import initialize
         initialize.run(argv)
     else:
-        config = Config(args['--config'][0])
+        config = Config(FilesystemConfig(args['--config'][0]))
 
         if command == 'bootstrap':
             from cloudseed.commands import bootstrap
