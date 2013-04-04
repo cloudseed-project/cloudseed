@@ -4,7 +4,7 @@ from boto.ec2.connection import EC2Connection
 from cloudseed.security import add_key_for_config
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
-    CloudseedError, MissingConfigKey, KeyAndPairAlreadyExist, KeyNotFound
+    CloudseedError, KeyAndPairAlreadyExist, KeyNotFound
 )
 from cloudseed.utils.logging import Loggable
 
@@ -31,10 +31,6 @@ class EC2Provider(Loggable):
 
         try:
             self._verify_keys()
-        except MissingConfigKey:
-            pass
-        except KeyNotFound:
-            pass
         except NeedsEc2Key:
             self.create_key_pair()
 
@@ -46,17 +42,17 @@ class EC2Provider(Loggable):
         and 'ec2.key_path' not in data:
             raise NeedsEc2Key
 
-        try:
+        with config_key_error():
             ec2_key_name = self.config.data['ec2.key_name']
             ec2_key_path = self.config.data['ec2.key_path']
-        except KeyError as e:
-            raise MissingConfigKey(*e.args)
 
         if not os.path.isfile(ec2_key_path):
+            self.log.error('Unable to locate key at %s', ec2_key_path)
             raise KeyNotFound
 
         if not self._ec2_key_exists(ec2_key_name):
-            pass
+            self.log.error('Invalid EC2 key name %s', ec2_key_name)
+            raise KeyNotFound
 
     def create_key_pair(self):
         name = '{0}_{1}_{2}'.format(
