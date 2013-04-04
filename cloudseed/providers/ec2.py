@@ -29,10 +29,14 @@ class EC2Provider(Loggable):
 
     def bootstrap(self):
 
+        
         try:
             self.verify_keys()
         except NeedsEc2Key:
             self.create_key_pair()
+
+        self._build_master()
+
 
     def verify_keys(self):
 
@@ -65,9 +69,10 @@ class EC2Provider(Loggable):
         self._delete_key_with_name(name)
 
         ec2_key_exists = self._ec2_key_exists(name)
-        location = '{0}/.cloudseed/{1}'.format(
+        location = '{0}/.cloudseed/{1}/{2}'.format(
                     os.path.expanduser('~'),
-                    self.config.data.get('project')
+                    self.config.data.get('project'),
+                    name
                 )
         pem_file = '{0}/{1}'.format(location, name)
 
@@ -88,6 +93,7 @@ class EC2Provider(Loggable):
         filename = add_key_for_config(key_pair.material, self.config)
         self.config.update_config({'ec2.key_name':name,
                                     'ec2.key_path':location})
+        
 
     def _ec2_key_exists(self, name):
         keys = self.conn.get_all_key_pairs()
@@ -108,6 +114,11 @@ class EC2Provider(Loggable):
         for key in keys:
             if key.name == name:
                 key.delete()
+
+    def _build_master(self):
+        
+
+
 
     # def kill_all_instances(self):
     #     for r in ec2.get_all_instances():

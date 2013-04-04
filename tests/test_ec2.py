@@ -68,22 +68,13 @@ class TestEC2Provider(unittest.TestCase):
             NeedsEc2Key,
             ec2.verify_keys)
 
-    # @unittest.skipUnless(LIVE_EC2, 'AWS Environment not set')
-    # def test_ec2provider_create_key_pair_with_key(self):
-    #     resource = FilesystemConfig(local_config=self.config_ec2_no_key)
-    #     resource.data['aws.key'] = os.environ['AWS_ACCESS_KEY_ID']
-    #     resource.data['aws.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
+    @unittest.skipUnless(LIVE_EC2, 'AWS Environment not set')
+    def test_ec2provider_create_key_pair_with_key(self):
+        resource = FilesystemConfig(local_config=self.config_ec2_no_key)
+        resource.data['aws.key'] = os.environ['AWS_ACCESS_KEY_ID']
+        resource.data['aws.secret'] = os.environ['AWS_SECRET_ACCESS_KEY']
 
-    #     config = Config(resource, provider=EC2Provider)
-    #     ec2 = config.provider
-
-    #     if not config.data.get('ec2.key_name', False) and not config.data.get('ec2.key_path', False):
-    #         try:
-    #             ec2.create_key_pair()
-    #         except KeyAndPairAlreadyExist:
-    #             pass
-    #         except MissingPemAtSpecifiedPath:
-    #             pass
-    #         except:
-    #             raise
-
+        config = Config(resource, provider=EC2Provider)
+        ec2 = config.provider
+        ec2.bootstrap()
+        
