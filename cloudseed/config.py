@@ -45,7 +45,7 @@ class Config(Loggable):
         self.resource.update_config(data)
 
     def activate_profile(self, value):
-        self.log.debug('Activating profile %s', value)
+        self.log.debug('Activating profile: %s', value)
         self.resource.activate_profile(value)
 
 
@@ -123,17 +123,16 @@ class FilesystemConfig(Loggable):
             f.write(yaml.dump(config, default_flow_style=False))
 
     def activate_profile(self, value):
-
         profile_key = self.session.setdefault('profile', None)
 
         if value != profile_key:
-            self.log.debug('Updating session profile to %s', value)
+            self.log.debug('Updating session profile to: %s', value)
 
             profile_paths = self.profile_paths(
                 self.data['project'],
                 value)
 
-            self.log.debug('Loading profile data for %s', value)
+            self.log.debug('Loading profile data for: %s', value)
             self.profile = self.load_paths(profile_paths)
 
             session_id = self.data.setdefault('session', uuid.uuid4().hex)
