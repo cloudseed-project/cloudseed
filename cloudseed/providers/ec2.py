@@ -37,11 +37,16 @@ class EC2Provider(Loggable):
 
     def bootstrap(self):
 
+        
         try:
             self.verify_keys()
         except NeedsEc2Key:
             self.log.debug('Createing EC2 key')
             self.create_key_pair()
+
+        self._initialize_security_groups()
+        self._build_master()
+
 
     def verify_keys(self):
 
@@ -71,6 +76,27 @@ class EC2Provider(Loggable):
                 'ec2'
             )
 
+        self._delete_key_with_name(name)
+
+        ec2_key_exists = self._ec2_key_exists(name)
+        location = '{0}/.cloudseed/{1}/{2}'.format(
+                    os.path.expanduser('~'),
+                    self.config.data.get('project'),
+                    name
+                )
+        pem_file = '{0}/{1}'.format(location, name)
+
+        if os.path.exists(pem_file) and ec2_key_exists:
+            self.log.debug('[EC2] already created a key, all is well')
+            raise KeyAndPairAlreadyExist()
+            return
+        elif not os.path.exists(pem_file) and ec2_key_exists:
+            self.log.debug('[EC2] key is created, but no pem file...get it from someone who made it')
+            self.log.debug('[EC2] Alternatively, you can delete the key, and remake it')
+            #self._delete_key_with_name(name)
+            raise KeyNotFound()
+            return
+
         # self._delete_key_with_name(name)
 
         # ec2_key_exists = self._ec2_key_exists(name)
@@ -95,8 +121,11 @@ class EC2Provider(Loggable):
         key_pair = self.conn.create_key_pair(name)
 
         filename = add_key_for_config(key_pair.material, self.config)
-        self.config.update_config({'ec2.key_name': name,
-                                   'ec2.key_path': filename})
+        self.config.update_config({'ec2.key_name':name,
+                                    'ec2.key_path':location})
+        
+
+
 
     def _ec2_key_exists(self, name):
         try:
@@ -117,9 +146,41 @@ class EC2Provider(Loggable):
             if key.name == name:
                 key.delete()
 
-    # def kill_all_instances(self):
-    #     for r in ec2.get_all_instances():
-    #         ec2.terminate_instances(r.instances[0].id)
+    
+    def _initialize_security_groups(self):
+        pass
+
+    def _build_master(self):
+        key_name = self.config.data.get('ec2.key_name')
+        profile = self.config.profile.get('bootstrap')
+        {'image': 'ami-bb709dd2', 
+        'size': 't1.micro'}
+
+        with config_key_error():
+            image = profile['image']
+            key = self.config.data['ec2.key_name']
+            size = profile['size']
+            security_group = 'cloudseed-{0}'.format(self.config.data['project'])
+
+
+
+        # reservation = self.conn.run_instances(
+        #         image,
+        #         key_name=key,
+        #         instance_type=size,
+        #         security_groups=[security_group]
+        #     )
+        #import pdb; pdb.set_trace()
+        #self.kill_all_instances()
+
+
+    def kill_all_instances(self):
+        for r in self.conn.get_all_instances():
+            self.conn.terminate_instances(r.instances[0].id)
+            print(r.instances[0].id)
+            print(r.instances[0].state)
+            
+            
 
     # def run_instances(image_id=None, key_name='ec2-key'):
     #     reservation = self.conn.run_instances( **WEB)
