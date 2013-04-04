@@ -71,15 +71,12 @@ class FilesystemConfig(object):
             try:
                 path = self.session_path(self.data)
                 self.session = self.session_for(path)
-            except RuntimeError:
+            except KeyError:
                 self.session = {}
-                return
 
     def session_path(self, config):
-        try:
-            session_id = config['session']
-        except KeyError:
-            raise RuntimeError
+
+        session_id = config['session']
 
         path = '{0}/{1}/session_{2}'.format(
             os.path.expanduser('~'),
