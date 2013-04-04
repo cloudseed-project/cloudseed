@@ -166,6 +166,9 @@ class EC2Provider(Loggable):
         current_set = frozenset([(x.name, x.description) for x in current_groups])
         allowed_groups = frozenset(base_groups)
         missing_groups = allowed_groups - current_set
+
+        self.log.debug('The following security groups will be created: %s', missing_groups)
+
         new_groups = list(starmap(conn.create_security_group, missing_groups))
 
         for group in new_groups:
