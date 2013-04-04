@@ -73,8 +73,11 @@ class FilesystemConfig(object):
             config['project'],
             session_id)
 
-        with open(path) as f:
-            return yaml.load(f)
+        try:
+            with open(path) as f:
+                return yaml.load(f)
+        except IOError:
+            return {}
 
     def config_for(self, local_config, project_config=None, global_config=None):
         global_data = {}
