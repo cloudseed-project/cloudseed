@@ -26,20 +26,16 @@ class Config(object):
             except RuntimeError:
                 raise UnknownConfigProvider
 
-        self.__provider = provider
-        self.__resource = resource
+        self.provider = provider
+        self.resource = resource
 
     @property
     def data(self):
-        return self.__resource.data
+        return self.resource.data
 
     @property
     def session(self):
-        return self.__resource.session
-
-    @property
-    def provider(self):
-        return self.__provider
+        return self.resource.session
 
 
 class DictConfig(object):
@@ -54,25 +50,38 @@ class DictConfig(object):
 
 class FilesystemConfig(object):
 
-    def __init__(self, local_config, project_config=None, global_config=None):
+    def __init__(self,
+        local_config,
+        project_config=None,
+        global_config=None,
+        session_config=None):
+
         self.data = self.config_for(
             local_config,
             project_config,
             global_config)
 
-        self.session = self.session_for(self.data)
+        if session_config:
+            self.session = self.session_for(session_config)
+        else:
+            try:
+                path = self.session_path(self.data)
+                self.session = self.session_for(path)
+            except KeyError:
+                self.session = {}
 
-    def session_for(self, config):
-        try:
-            session_id = config['session']
-        except KeyError:
-            return {}
+    def session_path(self, config):
+
+        session_id = config['session']
 
         path = '{0}/{1}/session_{2}'.format(
             os.path.expanduser('~'),
             config['project'],
             session_id)
 
+        return path
+
+    def session_for(self, path):
         try:
             with open(path) as f:
                 return yaml.load(f)
