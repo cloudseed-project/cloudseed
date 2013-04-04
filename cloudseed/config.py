@@ -3,22 +3,22 @@ import uuid
 import yaml
 from stevedore import driver
 from cloudseed.utils.logging import Loggable
+from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
-    NoProviderInConfig, ConfigNotFound, UnknownConfigProvider,
+    ConfigNotFound, UnknownConfigProvider,
     NoProjectInConfig
 )
 
 
-class Config(object):
+class Config(Loggable):
     def __init__(self, resource, provider=None):
 
         self.resource = resource
 
         if not provider:
-            try:
+
+            with config_key_error():
                 provider_name = resource.data['provider']
-            except KeyError:
-                raise NoProviderInConfig
 
             try:
                 em = driver.DriverManager(
@@ -28,6 +28,7 @@ class Config(object):
                     invoke_kwds={'config': self})
                 provider = em.driver
             except RuntimeError:
+                self.log.error('Unknown Config Provider %s', provider_name)
                 raise UnknownConfigProvider
 
         self.provider = provider
@@ -220,8 +221,13 @@ class FilesystemConfig(Loggable):
             project_data = {}
 
         data = {}
-        data.update(global_data)
-        data.update(project_data)
+
+        if global_data:
+            data.update(global_data)
+
+        if project_data:
+            data.update(project_data)
+
         data.update(local_data)
 
         return data

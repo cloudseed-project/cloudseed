@@ -1,11 +1,6 @@
 class CloudseedError(RuntimeError):
     '''An unexpected condition occurred'''
 
-
-class NoProviderInConfig(CloudseedError):
-    '''No provider defined in config'''
-
-
 class NoProjectInConfig(CloudseedError):
     '''No provider defined in config'''
 
