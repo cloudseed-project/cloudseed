@@ -2,6 +2,7 @@ import os
 import uuid
 import yaml
 from stevedore import driver
+from cloudseed.utils.logging import Loggable
 from cloudseed.exceptions import (
     NoProviderInConfig, ConfigNotFound, UnknownConfigProvider,
     NoProjectInConfig
@@ -43,7 +44,7 @@ class Config(object):
         return self.resource.session
 
 
-class MemoryConfig(object):
+class MemoryConfig(Loggable):
     def __init__(self, data, session=None, profile=None):
 
         if 'project' not in data:
@@ -57,7 +58,7 @@ class MemoryConfig(object):
         self.session['profile'] = value
 
 
-class FilesystemConfig(object):
+class FilesystemConfig(Loggable):
 
     def __init__(self,
         local_config,
@@ -66,6 +67,7 @@ class FilesystemConfig(object):
         session_config=None,
         profile_config=None):
 
+        self.log.debug('Loading configuration')
         self.data = self.config_for(
             local_config,
             project_config,
@@ -153,10 +155,14 @@ class FilesystemConfig(object):
         project_data = {}
         local_data = {}
 
+
         user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
+        self.log.debug('User dir %s', user_dir)
 
         if not global_config:
             global_config = '{0}/config'.format(user_dir)
+
+        self.log.debug('Loading local config: %s', local_config)
 
         try:
             with open(local_config) as cfg:
@@ -166,18 +172,21 @@ class FilesystemConfig(object):
 
         try:
             project = local_data['project']
+            self.log.debug('Project name is: %s', project)
         except KeyError:
             raise NoProjectInConfig
 
         if not project_config:
             project_config = '{0}/{1}/config'.format(user_dir, project)
 
+        self.log.debug('Loading global config: %s', global_config)
         try:
             with open(global_config) as cfg:
                 global_data = yaml.load(cfg)
         except IOError:
             global_data = {}
 
+        self.log.debug('Loading project config: %s', project_config)
         try:
             with open(project_config) as cfg:
                 project_data = yaml.load(cfg)

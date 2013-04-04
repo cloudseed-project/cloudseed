@@ -11,7 +11,7 @@ def config_key_error():
     try:
         yield
     except KeyError as e:
-        log.error('{0}: {1}',
+        log.error('%s: %s',
             MissingConfigKey.__doc__,
             e.message)
         raise MissingConfigKey(*e.args)

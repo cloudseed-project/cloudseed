@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 import logging
+import logging.config
 from subprocess import call
 from docopt import docopt
 import cloudseed
 from cloudseed.config import Config
 from cloudseed.config import FilesystemConfig
-
 
 
 def cloudseed_main():
@@ -23,8 +24,6 @@ common commands:
     init <name>           Initialize a new .cloudseed configuration
     status                Current cloudseed status
     '''
-
-    logging.basicConfig()
 
     args = docopt(
         cloudseed_main.__doc__,
