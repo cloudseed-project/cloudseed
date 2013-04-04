@@ -14,6 +14,6 @@ def run(config, argv):
     args = docopt(__doc__, argv=argv)
     profile = args['<profile>']
     config.activate_profile(profile)
-
+    import pdb; pdb.set_trace()
     provider = config.provider
     # provider.?????

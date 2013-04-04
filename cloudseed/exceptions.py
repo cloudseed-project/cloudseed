@@ -1,18 +1,22 @@
-class CloudseedException(RuntimeError):
+class CloudseedError(RuntimeError):
     '''An unexpected condition occurred'''
 
 
-class NoProviderInConfig(CloudseedException):
+class NoProviderInConfig(CloudseedError):
     '''No provider defined in config'''
 
 
-class NoProjectInConfig(CloudseedException):
+class NoProjectInConfig(CloudseedError):
     '''No provider defined in config'''
 
 
-class ConfigNotFound(CloudseedException):
+class ConfigNotFound(CloudseedError):
     '''Cloudseed config not found'''
 
 
-class UnknownConfigProvider(CloudseedException):
+class UnknownConfigProvider(CloudseedError):
     '''Unable to load requester provider'''
+
+
+class MissingConfigKey(KeyError, CloudseedError):
+    '''Missing Required config key'''

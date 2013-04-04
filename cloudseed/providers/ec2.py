@@ -2,6 +2,7 @@ import os
 import boto
 from boto.ec2.connection import EC2Connection
 from cloudseed.security import add_key_for_config
+from cloudseed.utils.exceptions import config_key_error
 
 
 class EC2Provider(object):
@@ -13,10 +14,11 @@ class EC2Provider(object):
         self._create_key_pair()
 
     def _connect(self):
-        self.conn = EC2Connection(
-                self.config.data['aws.key'],
-                self.config.data['aws.secret']
-            )
+        with config_key_error():
+            self.conn = EC2Connection(
+                    self.config.data['aws.key'],
+                    self.config.data['aws.secret']
+                )
 
     def _create_key_pair(self):
         name = '{0}_{1}_{2}'.format(
