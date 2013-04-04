@@ -40,6 +40,7 @@ class EC2Provider(Loggable):
 
         if 'ec2.key_name' not in data \
         and 'ec2.key_path' not in data:
+            self.log.debug('ec2 key settings not present')
             raise NeedsEc2Key
 
         with config_key_error():
