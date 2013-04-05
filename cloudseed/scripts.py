@@ -1,8 +1,7 @@
 from __future__ import absolute_import
-import logging
-import logging.config
 from subprocess import call
 from docopt import docopt
+from docopt import DocoptExit
 import cloudseed
 from cloudseed.config import Config
 from cloudseed.config import FilesystemConfig
@@ -25,7 +24,6 @@ common commands:
     init <name>           Initialize a new .cloudseed configuration
     status                Current cloudseed status
     '''
-
     args = docopt(
         cloudseed_main.__doc__,
         version=cloudseed.__version__,
@@ -51,9 +49,21 @@ common commands:
             from cloudseed.commands import bootstrap
             bootstrap.run(config, argv)
 
+        if command == 'ssh':
+            from cloudseed.commands import ssh
+            ssh.run(config, argv)
+
         elif args['<command>'] in ('help', None):
             exit(call(['cloudseed', '--help']))
 
         else:
             exit('{0} is not a cloudseed command. See \'cloudseed --help\'.' \
                 .format(args['<command>']))
+
+
+def main():
+    try:
+        cloudseed_main()
+    except DocoptExit as e:
+        exit(call(['cloudseed', '--help']))
+

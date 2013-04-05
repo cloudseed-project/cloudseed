@@ -1,9 +1,11 @@
 import os
 import time
 from itertools import starmap
+import yaml
 import boto
 from boto import ec2
 from boto.exception import EC2ResponseError
+from cloudseed.utils.deploy import bootstrap_script
 from cloudseed.security import add_key_for_config
 from cloudseed.utils.exceptions import config_key_error, profile_key_error
 from cloudseed.exceptions import (
@@ -36,6 +38,21 @@ class EC2Provider(Loggable):
                 aws_access_key_id=self.config.data['ec2.key'],
                 aws_secret_access_key=self.config.data['ec2.secret'],
                 region=region)
+
+    def deploy_config(self, context):
+        data = self.config.data.copy()
+        data['ec2.key_path'] = '/etc/salt/cloudseed.pem'
+        return yaml.dump(data, default_flow_style=False)
+
+    def deploy_profile(self, context):
+        return yaml.dump(self.config.profile, default_flow_style=False)
+
+    def deploy_extras(self, context):
+
+        with open(self.config.data['ec2.key_path']) as f:
+            key = f.read()
+
+        return ['echo "{0}" > /etc/salt/cloudseed.pem'.format(key)]
 
     def bootstrap(self):
         self.log.info('Creating bootstrap node')
@@ -214,7 +231,8 @@ class EC2Provider(Loggable):
             'image_id': profile['image'],
             'key_name': self.config.data['ec2.key_name'],
             'instance_type': profile['size'],
-            'security_groups': security_groups
+            'security_groups': security_groups,
+            'user_data': bootstrap_script(profile['script'], profile, self.config)
             }
 
         self.log.debug('Creating instance with %s', kwargs)

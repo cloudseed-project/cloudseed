@@ -14,6 +14,19 @@ class Config(Loggable):
 
         self.resource = resource
 
+        # CONSIDER APPENDING PROJECT BASED SCRIPT PATH AS WELL TO BOTH
+        # MASTER AND MINION DEPLOY SCRIPT PATHS
+
+        self.master_script_paths = [os.path.abspath(
+            os.path.join(os.path.dirname(__file__), 'resources', 'masters'))]
+
+        self.minion_script_paths = [os.path.abspath(
+            os.path.join(os.path.dirname(__file__), 'resources', 'minions'))]
+
+
+        # TODO: EXPOSE MASTER AND MINION CONFIG PATHS SOME HOW
+        # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
+
         if not provider:
             with config_key_error():
                 provider_name = resource.data['provider']

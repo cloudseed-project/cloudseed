@@ -30,13 +30,14 @@ setup(
     version='0.0.1',
     description='Cloudtools',
     long_description=readme,
-    author='Adam Venturella <aventurella@gmail.com>, Aubrey Taylor <aubricus@gmail.com>',
-    author_email='aventurella@gmail.com, aubricus@gmail.com',
+    author='Adam Venturella <aventurella@gmail.com>, Dino Petrone <dinopetrone@gmail.com> Aubrey Taylor <aubricus@gmail.com>',
+    author_email='aventurella@gmail.com, dinopetrone@gmail.com aubricus@gmail.com',
     url='https://github.com/aventurella/cloudseed',
     license=license,
     packages=packages,
     package_data={'': ['LICENSE'],
-                  'cloudseed': ['resources/bootstrap/*.sh']},
+                  'cloudseed.masters': ['resources/masters/*.sh'],
+                  'cloudseed.minions': ['resources/minions/*.sh']},
     include_package_data=True,
     install_requires=install_requires,
     tests_require=tests_require,
@@ -52,7 +53,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'cloudseed = cloudseed.scripts:cloudseed_main',
+            'cloudseed = cloudseed.scripts:main',
             'cloudseed_init = cloudseed.scripts:cloudseed_init',
             'cloudseed_bootstrap = cloudseed.scripts:cloudseed_bootstrap'
         ],
