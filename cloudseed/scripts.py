@@ -64,6 +64,6 @@ common commands:
 def main():
     try:
         cloudseed_main()
-    except DocoptExit as e:
+    except DocoptExit:
         exit(call(['cloudseed', '--help']))
 
