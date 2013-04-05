@@ -1,4 +1,5 @@
 boto
 docopt
+jinja2
 pyyaml
 stevedore

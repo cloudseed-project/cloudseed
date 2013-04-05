@@ -36,7 +36,7 @@ setup(
     license=license,
     packages=packages,
     package_data={'': ['LICENSE'],
-                  'promptly': ['resources/*.*']},
+                  'cloudseed': ['resources/bootstrap/*.sh']},
     include_package_data=True,
     install_requires=install_requires,
     tests_require=tests_require,
