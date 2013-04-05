@@ -32,6 +32,9 @@ def run(config, argv):
             .format(config.data['provider']))
         raise ProviderError
 
+    log.debug('Opening SSH to %s@%s using identity %s',
+        username, hostname, identity)
+
     call('ssh {0}@{1} -i {2} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes' \
         .format(
             username,

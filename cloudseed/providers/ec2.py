@@ -212,7 +212,7 @@ class EC2Provider(Loggable):
                     from_port=-1,
                     to_port=-1)
 
-            if group.name == groups['app'][0]:
+            if group.name == groups['ssh'][0]:
                 group.authorize(
                     ip_protocol='tcp',
                     from_port=22,
