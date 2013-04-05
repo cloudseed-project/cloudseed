@@ -171,7 +171,7 @@ class FilesystemConfig(Loggable):
 
         user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
         project_profile = '{0}/{1}/{2}'.format(user_dir, project, value)
-        local_profile = './.cloudseed/{0}'.format(value)
+        local_profile = './.cloudseed/{0}/profile'.format(value)
 
         return [project_profile, local_profile]
 
