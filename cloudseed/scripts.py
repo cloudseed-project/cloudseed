@@ -22,6 +22,7 @@ options:
 common commands:
     bootstrap <profile>   Deploy a Salt Master based on a .cloudseed profile
     init <name>           Initialize a new .cloudseed configuration
+    ssh                   SSH into the master server, requires bootstrap
     status                Current cloudseed status
     '''
     args = docopt(

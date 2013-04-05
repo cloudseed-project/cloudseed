@@ -39,6 +39,9 @@ class EC2Provider(Loggable):
                 aws_secret_access_key=self.config.data['ec2.secret'],
                 region=region)
 
+    def ssh_identity(self):
+        return self.config.data['ec2.key_path']
+
     def deploy_config(self, context):
         data = self.config.data.copy()
         data['ec2.key_path'] = '/etc/salt/cloudseed.pem'

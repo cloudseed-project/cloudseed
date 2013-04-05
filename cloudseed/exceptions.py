@@ -18,12 +18,20 @@ class UnknownConfigProvider(CloudseedError):
     '''Unable to load requester provider'''
 
 
+class ProviderError(CloudseedError):
+    '''Provider was unable to fullfill request'''
+
+
 class MissingConfigKey(KeyError, CloudseedError):
     '''Missing required config key'''
 
 
 class MissingProfileKey(KeyError, CloudseedError):
     '''Missing required profile key'''
+
+
+class MissingSessionKey(KeyError, CloudseedError):
+    '''Missing required session key'''
 
 
 class KeyAndPairAlreadyExist(CloudseedError):
