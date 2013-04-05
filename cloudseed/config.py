@@ -102,115 +102,61 @@ class FilesystemConfig(Loggable):
 
         self.local_config = local_config
 
-        self.data = self.config_for(
+        self.data = self.load_config(
             local_config,
             project_config,
             global_config)
 
-        self.log.debug('Loading session data')
-        if session_config:
-            self.session = self.load_paths([session_config])
-        else:
-            try:
-                session_paths = self.session_paths(
-                    self.data['project'],
-                    self.data['session'])
-                self.session = self.load_paths(session_paths)
-            except KeyError:
-                self.session = {}
-
-        profile_key = self.session.setdefault('profile', None)
-
-        self.log.debug('Loading profile data')
-
-        if profile_config:
-            profile_key = os.path.basename(profile_config)
-            self.session['profile'] = profile_key
-            self.profile = self.load_paths([profile_config])
-        else:
-            if profile_key:
-                profile_paths = self.profile_paths(
-                    self.data['project'],
-                    profile_key)
-
-                profile = self.load_paths(profile_paths)
-
-                if not profile:
-                    self.log.error('No profile information found in %s', profile_paths)
-                    raise InvalidProfile
-
-                self.profile = profile
-            else:
-                self.profile = {}
+        self.session = self.load_session(session_config)
+        self.profile = self.load_profile(profile_config)
 
     def update_config(self, data):
 
-        self.data.update(data)
+        self.log.debug('Updating local config %s', self.local_config)
 
-        self.log.debug('Reading local config for merge %s', self.local_config)
-        with open(self.local_config) as f:
-            config = yaml.load(f)
-
+        config = self.load_file(self.local_config)
         config.update(data)
 
-        self.log.debug('Writing merged config %s to %s', config, self.local_config)
-        with open(self.local_config, 'w') as f:
-            f.write(yaml.dump(config, default_flow_style=False))
+        self.write_file(self.local_config, config)
+        self.data.update(data)
 
     def update_session(self, data):
-
-        self.session.update(data)
 
         path = self.session_paths(
             self.data['project'],
             self.data['session'])[0]
 
-        self.log.debug('Reading local session for merge %s', path)
+        self.log.debug('Updating session %s', path)
 
-        with open(path) as f:
-            session = yaml.load(f)
-
+        session = self.load_file(path)
         session.update(data)
 
-        self.log.debug('Writing merged session %s to %s', session, path)
-
-        with open(path, 'w') as f:
-            f.write(yaml.dump(session, default_flow_style=False))
+        self.write_file(path, session)
+        self.session.update(data)
 
     def activate_profile(self, value):
         profile_key = self.session.setdefault('profile', None)
 
-        if value != profile_key:
-            self.log.debug('Updating session profile to: %s', value)
+        if value == profile_key:
+            self.log.debug('Current profile is already active: %s', value)
+            return
 
-            profile_paths = self.profile_paths(
-                self.data['project'],
-                value)
+        self.profile = self.load_profile(value)
 
-            self.log.debug('Loading profile data for: %s', value)
-            profile = self.load_paths(profile_paths)
+        session_id = self.data.setdefault('session', uuid.uuid4().hex)
 
-            if not profile:
-                self.log.error('No profile information found in %s', profile_paths)
-                raise InvalidProfile
-            else:
-                self.profile = profile
+        self.log.debug('Updating session profile to: %s', value)
+        self.session['profile'] = value
 
-            session_id = self.data.setdefault('session', uuid.uuid4().hex)
+        session_path = self.session_paths(
+            self.data['project'],
+            session_id)[0]
 
-            self.session['profile'] = value
+        self.log.debug('Writing active profile to session %s', session_path)
 
-            session_path = self.session_paths(
-                self.data['project'],
-                session_id)[0]
-
-            self.log.debug('Writing active profile to session %s', session_path)
-
-            with open(session_path, 'w') as f:
-                f.write(yaml.dump(self.session, default_flow_style=False))
+        self.write_file(session_path, self.session)
 
     def session_paths(self, project, session_id):
-
         path = '{0}/.cloudseed/{1}/session_{2}'.format(
             os.path.expanduser('~'),
             project,
@@ -229,23 +175,60 @@ class FilesystemConfig(Loggable):
 
         return [project_profile, local_profile]
 
-    def load_paths(self, paths):
-        self.log.debug('Loading paths %s', paths)
-        data = {}
+    def load_session(self, session_config=None):
+        self.log.debug('Loading session data')
+        session = {}
 
-        for path in paths:
-            try:
-                with open(path) as f:
-                    data.update(yaml.load(f))
-            except IOError:
-                pass
+        if session_config:
+            session = self.load_file(session_config)
+        else:
+            with config_key_error():
+                session_paths = self.session_paths(
+                    self.data['project'],
+                    self.data['session'])
+                session = self.load_file(*session_paths)
 
-        return data
+        return session
 
-    def config_for(self, local_config, project_config=None, global_config=None):
+    def load_profile(self, value):
+
+        if not value:
+            return {}
+
+        path = os.path.abspath(value)
+
+        # This is really dangerous, we are not checking
+        # where we are loading this file from. Whatever is
+        # passed here will be run though a YAML decoder
+        # this is definitely a security risk
+        # Whatever the user executing this script has read access
+        # to is fair game.
+
+        if os.path.isfile(path):
+            self.log.debug('Loading profile data for %s', path)
+            profile_key = os.path.basename(path)
+            self.session['profile'] = profile_key
+            return self.load_file(path)
+        else:
+            if not value:
+                self.log.debug('No profile currently set')
+                return {}
+
+            self.log.debug('Loading profile data for %s', value)
+            profile_paths = self.profile_paths(
+                self.data['project'],
+                value)
+
+            profile = self.load_file(*profile_paths)
+
+            if not profile:
+                self.log.error('No profile information found in %s', profile_paths)
+                raise InvalidProfile
+
+            return profile
+
+    def load_config(self, local_config, project_config=None, global_config=None):
         self.log.debug('Loading configuration')
-        global_data = {}
-        project_data = {}
         local_data = {}
 
         user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
@@ -256,10 +239,9 @@ class FilesystemConfig(Loggable):
 
         self.log.debug('Loading local config: %s', local_config)
 
-        try:
-            with open(local_config) as cfg:
-                local_data = yaml.load(cfg)
-        except IOError:
+        local_data = self.load_file(local_config)
+
+        if not local_data:
             raise ConfigNotFound
 
         with config_key_error():
@@ -269,28 +251,38 @@ class FilesystemConfig(Loggable):
         if not project_config:
             project_config = '{0}/{1}/config'.format(user_dir, project)
 
-        self.log.debug('Loading global config: %s', global_config)
-        try:
-            with open(global_config) as cfg:
-                global_data = yaml.load(cfg)
-        except IOError:
-            global_data = {}
+        self.log.debug(
+            'Loading global and project configs: %s, %s',
+            global_config, project_config)
 
-        self.log.debug('Loading project config: %s', project_config)
-        try:
-            with open(project_config) as cfg:
-                project_data = yaml.load(cfg)
-        except IOError:
-            project_data = {}
-
-        data = {}
-
-        if global_data:
-            data.update(global_data)
-
-        if project_data:
-            data.update(project_data)
-
+        data = self.load_file(global_config, project_config)
         data.update(local_data)
 
         return data
+
+    def load_file(self, *args):
+        data = {}
+
+        for path in args:
+            try:
+                self.log.debug('Loading file %s', path)
+
+                with open(path) as f:
+                    try:
+                        data.update(yaml.load(f))
+                    except Exception as e:
+                        self.log.warning('Unable to merge data from file %s: %s', path, e.message)
+            except IOError:
+                self.log.warning('Failed to load file %s', path)
+
+        return data
+
+    def write_file(self, path, data):
+        self.log.debug('Writing file to %s with %s', path, data)
+
+        try:
+            with open(path, 'w') as f:
+                f.write(yaml.dump(data, default_flow_style=False))
+        except IOError:
+            self.log.error('Failed writing file %s with %s', path, data)
+            raise
