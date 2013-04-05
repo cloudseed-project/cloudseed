@@ -25,4 +25,6 @@ def add_key_for_config(key, config):
     with open(path, 'w') as target:
         target.write(key)
 
+    os.chmod(path, 0600)
+
     return path
