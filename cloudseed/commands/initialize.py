@@ -1,115 +1,135 @@
 '''
 usage:
-  cloudseed init env <environment> 
+  cloudseed init env <environment>
   cloudseed init <name>
 
 options:
   -h, --help            Show this screen.
   <name>                The name of the cloudseed project.
-  <environment>         Initialize a new environment 
+  <environment>         Initialize a new environment
 
 '''
 import os
-import yaml
-import uuid
+import logging
 import sys
 from subprocess import call
 from docopt import docopt
+from cloudseed.utils.filesystem import YAMLWriter
+
+log = logging.getLogger(__name__)
 
 
-def run(argv):
+def run(config, argv):
     args = docopt(__doc__, argv=argv)
     if args['<name>'] == 'env':
         sys.stdout.write('\nname cant be "env"\n\n')
         exit(call(['cloudseed', 'init', '--help']))
     elif args['<name>'] is not None:
-        init_cloudseed_project(args)
+        init_cloudseed_project(config, args)
     elif args['<environment>'] is not None:
         if not os.path.isdir('./.cloudseed'):
             sys.stdout.write("\nmust call 'cloudseed init <name>' first\n\n")
             exit(call(['cloudseed', 'init', '--help']))
-        init_cloudseed_environment(args)
+        init_cloudseed_environment(config, args)
 
 
-def init_cloudseed_environment(args):
+def init_cloudseed_environment(config, args):
     env_name = args['<environment>']
+    project_name = config.data['project']
     cwd = os.getcwd()
-    local_dir = '{0}/{1}'.format(cwd, '.cloudseed')
-    env_dir = '{0}/{1}'.format(local_dir, env_name)
-    
-    if not os.path.isdir(env_dir):
-        os.mkdir(env_dir)
 
+    write_file = YAMLWriter.write_file
 
+    user_dir = os.path.join(os.path.expanduser('~'), '.cloudseed')
+
+    local_dir = os.path.join(cwd, '.cloudseed')
+    env_dir = os.path.join(local_dir, env_name)
+    profile_path = os.path.join(env_dir, 'profile')
+    master_path = os.path.join(env_dir, 'master')
+    project_env_dir = os.path.join(user_dir, project_name, env_name)
 
     profile = {
-        "bootstrap":{
-            'image':'#place image here',
-            'size': '#place size here',
-            'script': '#insert script here (optional)',
-            'ssh_username':'#insert ssh username',
+        'bootstrap': {
+            'image': '<server image>',
+            'size': '<server size>',
+            'script': '<bootstrap script>',
+            'ssh_username': '<ssh username>',
         }
     }
-    profile_path= '{0}/profile'.format(env_dir)
-    
-    if os.path.exists(profile_path):
-        sys.stdout.write("{0} already exists, will not overwrite\n\n".format(profile_path))
-    else:
-        with open(profile_path, 'w') as cfg:
-            cfg.write(yaml.dump(profile, default_flow_style=False))
 
     master = {
-        "fileserver_backend":[
+        'fileserver_backend': [
             'roots',
             'git'
         ],
-        'gitfs_remotes':[
-          'git://github.com/your/salt-states.git'  
+        'gitfs_remotes': [
+          'git://github.com/your/salt-states.git'
         ]
     }
-    
-    master_path= '{0}/master'.format(env_dir)
-    if os.path.exists(master_path):
-        sys.stdout.write("{0} already exists, will not overwrite\n\n".format(master_path))
+
+    if not os.path.isdir(env_dir):
+        log.debug('Creating directory %s', env_dir)
+        os.mkdir(env_dir)
+
+    if os.path.exists(profile_path):
+        log.debug('%s already exists, will not overwrite', profile_path)
     else:
-        with open(master_path, 'w') as cfg:
-            cfg.write(yaml.dump(master, default_flow_style=False))
-    
+        write_file(profile_path, profile)
 
-def init_cloudseed_project(args):
+    if os.path.exists(master_path):
+        log.debug('%s already exists, will not overwrite', master_path)
+    else:
+        write_file(master_path, master)
+
+    if not os.path.isdir(project_env_dir):
+        os.mkdir(project_env_dir)
+
+
+def init_cloudseed_project(config, args):
+    write_file = YAMLWriter.write_file
+
     cwd = os.getcwd()
-    project_dir = '{0}/{1}'.format(cwd, '.cloudseed')
-
     project_name = args['<name>']
 
-    user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
-    project_dir = '{0}/{1}'.format(user_dir, project_name)
-    local_dir = '{0}/{1}'.format(cwd, '.cloudseed')
-    session_id = uuid.uuid4().hex
+    user_dir = os.path.join(os.path.expanduser('~'), '.cloudseed')
+    local_dir = os.path.join(cwd, '.cloudseed')
+    project_dir = os.path.join(user_dir, project_name)
 
-    if not os.path.isdir(user_dir):
-        os.mkdir(user_dir)
+    local_config_path = os.path.join(local_dir, 'config')
 
-    if not os.path.isdir(project_dir):
-        os.mkdir(project_dir)
-
-    if not os.path.isdir(local_dir):
-        os.mkdir(local_dir)
-
-    config = {
-    'project': project_name,
-    'session': session_id
+    local_data = {
+        'project': project_name,
     }
 
-    local_config_path = '{0}/config'.format(local_dir)
-    with open(local_config_path, 'w') as cfg:
-        cfg.write(yaml.dump(config, default_flow_style=False))
+    session_data = {
+        'environment': None
+    }
 
-    session_path = '{0}/session_{1}'.format(project_dir, session_id)
-    with open(session_path, 'w') as session:
-        data = {
-        'profile': None,
-        'path': local_dir
-        }
+    if not os.path.isdir(user_dir):
+        log.debug('Creating directory %s', user_dir)
+        os.mkdir(user_dir)
 
-        session.write(yaml.dump(data, default_flow_style=False))
+        # make empty global level config
+        global_config = os.path.join(user_dir, 'config')
+        log.debug('Creating empty config %s', global_config)
+        open(global_config, 'w').close()
+
+    if not os.path.isdir(project_dir):
+        log.debug('Creating directory %s', project_dir)
+        os.mkdir(project_dir)
+
+        # make empty project level config
+        project_config = os.path.join(project_dir, 'config')
+        session_config = os.path.join(project_dir, 'session')
+
+        log.debug('Creating empty config %s', project_config)
+        open(project_config, 'w').close()
+
+        write_file(session_config, session_data)
+
+    if not os.path.isdir(local_dir):
+        log.debug('Creating directory %s', local_dir)
+        os.mkdir(local_dir)
+
+    if not os.path.isfile(local_config_path):
+        write_file(local_config_path, local_data)

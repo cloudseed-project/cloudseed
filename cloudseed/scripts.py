@@ -33,37 +33,36 @@ common commands:
     command = args['<command>']
     argv = [args['<command>']] + args['<args>']
 
+    try:
+        profile = args['--profile'][0]
+    except IndexError:
+        profile = None
+
+    config = Config(FilesystemConfig(local_config=args['--config'][0],
+        profile_config=profile))
+
     if command == 'init':
         from cloudseed.commands import initialize
-        initialize.run(argv)
+        initialize.run(config, argv)
+
+    elif command == 'bootstrap':
+        from cloudseed.commands import bootstrap
+        bootstrap.run(config, argv)
+
+    elif command == 'config':
+        from cloudseed.commands import config as cfg
+        cfg.run(config, argv)
+
+    elif command == 'ssh':
+        from cloudseed.commands import ssh
+        ssh.run(config, argv)
+
+    elif args['<command>'] in ('help', None):
+        exit(call(['cloudseed', '--help']))
+
     else:
-
-        try:
-            profile = args['--profile'][0]
-        except IndexError:
-            profile = None
-
-        config = Config(FilesystemConfig(local_config=args['--config'][0],
-                                        profile_config=profile))
-
-        if command == 'bootstrap':
-            from cloudseed.commands import bootstrap
-            bootstrap.run(config, argv)
-
-        elif command == 'config':
-            from cloudseed.commands import config as cfg
-            cfg.run(config, argv)
-
-        elif command == 'ssh':
-            from cloudseed.commands import ssh
-            ssh.run(config, argv)
-
-        elif args['<command>'] in ('help', None):
-            exit(call(['cloudseed', '--help']))
-
-        else:
-            exit('{0} is not a cloudseed command. See \'cloudseed --help\'.' \
-                .format(args['<command>']))
+        exit('{0} is not a cloudseed command. See \'cloudseed --help\'.' \
+            .format(args['<command>']))
 
 
 def main():

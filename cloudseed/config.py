@@ -3,6 +3,7 @@ import uuid
 import yaml
 from stevedore import driver
 from cloudseed.utils.logging import Loggable
+from cloudseed.utils.filesystem import (YAMLReader, YAMLWriter)
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
     ConfigNotFound, UnknownConfigProvider, InvalidProfile,
@@ -13,6 +14,7 @@ class Config(Loggable):
     def __init__(self, resource, provider=None):
 
         self.resource = resource
+        self.provider = None
 
         # CONSIDER APPENDING PROJECT BASED SCRIPT PATH AS WELL TO BOTH
         # MASTER AND MINION DEPLOY SCRIPT PATHS
@@ -23,28 +25,24 @@ class Config(Loggable):
         self.minion_script_paths = [os.path.abspath(
             os.path.join(os.path.dirname(__file__), 'resources', 'minions'))]
 
-
         # TODO: EXPOSE MASTER AND MINION CONFIG PATHS SOME HOW
         # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
-
-        if not provider:
+        #import pdb; pdb.set_trace()
+        if provider:
+            self.provider = provider(config=self)
+        elif resource.session.get('environment', None):
             with config_key_error():
                 provider_name = resource.data['provider']
-
             try:
                 em = driver.DriverManager(
                     'com.cloudseed.providers',
                     provider_name,
                     invoke_on_load=True,
                     invoke_kwds={'config': self})
-                provider = em.driver
+                self.provider = em.driver
             except RuntimeError:
                 self.log.error('Unknown Config Provider %s', provider_name)
                 raise UnknownConfigProvider
-        else:
-            provider = provider(config=self)
-
-        self.provider = provider
 
     @property
     def data(self):
@@ -91,7 +89,7 @@ class MemoryConfig(Loggable):
         self.session.update(data)
 
 
-class FilesystemConfig(Loggable):
+class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
 
     def __init__(self,
         local_config,
@@ -102,18 +100,25 @@ class FilesystemConfig(Loggable):
 
         self.local_config = local_config
 
-        self.data = self.load_config(
-            local_config,
-            project_config,
-            global_config)
+        try:
+            self.data = self.load_config(
+                local_config,
+                project_config,
+                global_config)
+        except ConfigNotFound:
+            self.log.warning('No config found, operations will be limited')
+            self.data = {}
+            self.session = {}
+            self.profile = {}
+            return
 
         self.session = self.load_session(session_config)
 
-        profile_key = self.session['profile'] \
+        env_key = self.session['environment'] \
         if not profile_config \
         else profile_config
 
-        self.profile = self.load_profile(profile_key)
+        self.profile = self.load_profile(env_key)
 
     def update_config(self, data):
 
@@ -161,11 +166,13 @@ class FilesystemConfig(Loggable):
 
         self.write_file(session_path, self.session)
 
-    def session_paths(self, project, session_id):
-        path = '{0}/.cloudseed/{1}/session_{2}'.format(
+    def session_paths(self, project):
+        path = os.path.join(
             os.path.expanduser('~'),
+            '.cloudseed',
             project,
-            session_id)
+            'session'
+            )
 
         return [path]
 
@@ -189,8 +196,7 @@ class FilesystemConfig(Loggable):
         else:
             with config_key_error():
                 session_paths = self.session_paths(
-                    self.data['project'],
-                    self.data['session'])
+                    self.data['project'])
                 session = self.load_file(*session_paths)
 
         return session
