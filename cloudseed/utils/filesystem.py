@@ -70,3 +70,30 @@ class YAMLWriter(object):
         except IOError:
             log.error('Failed writing file %s with %s', path, data)
             raise
+
+
+class Filesystem(YAMLReader, YAMLWriter):
+
+    @staticmethod
+    def user_path():
+        return os.path.join(os.path.expanduser('~'), '.cloudseed')
+
+    @staticmethod
+    def local_path():
+        return os.path.join(os.getcwd(), '.cloudseed')
+
+    @staticmethod
+    def local_env_path(env):
+        return os.path.join(Filesystem.local_path(), env)
+
+    @staticmethod
+    def project_path(project):
+        return os.path.join(
+            Filesystem.user_path(),
+            project)
+
+    @staticmethod
+    def project_env_path(project, env):
+        return os.path.join(
+            Filesystem.project_path(project),
+            env)

@@ -1,7 +1,7 @@
 import os
 from stevedore import driver
 from cloudseed.utils.logging import Loggable
-from cloudseed.utils.filesystem import (YAMLReader, YAMLWriter)
+from cloudseed.utils.filesystem import Filesystem
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
     ConfigNotFound, UnknownConfigProvider, InvalidEnvironment,
@@ -25,10 +25,10 @@ class Config(Loggable):
 
         # TODO: EXPOSE MASTER AND MINION CONFIG PATHS SOME HOW
         # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
-        #import pdb; pdb.set_trace()
+
         if provider:
             self.provider = provider(config=self)
-        elif resource.session.get('environment', None):
+        elif resource.session.get('environment'):
             with config_key_error():
                 provider_name = resource.data['provider']
             try:
@@ -54,9 +54,13 @@ class Config(Loggable):
     def profile(self):
         return self.resource.profile
 
-    def update_config(self, data):
+    def update_config(self, data, target):
         self.log.debug('Updating config with %s', data)
-        self.resource.update_config(data)
+        self.resource.update_config(data, target)
+
+    def update_project_config(self, data):
+        self.log.debug('Updating project config with %s', data)
+        self.resource.update_project_config(data)
 
     def update_session(self, data):
         self.log.debug('Updating session with %s', data)
@@ -80,14 +84,14 @@ class MemoryConfig(Loggable):
     def activate_environment(self, value):
         self.session['environment'] = value
 
-    def update_config(self, data):
+    def update_config(self, data, _):
         self.data.update(data)
 
     def update_session(self, data):
         self.session.update(data)
 
 
-class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
+class FilesystemConfig(Loggable, Filesystem):
 
     def __init__(self,
         local_config,
@@ -118,21 +122,25 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
 
         self.profile = self.load_env_profile(env_key)
 
-    def update_config(self, data):
+    def update_config(self, data, target):
 
-        self.log.debug('Updating local config %s', self.local_config)
+        if os.path.isabs(target):
+            path = target
+        else:
+            path = self.local_path()
 
-        config = self.load_file(self.local_config)
+        self.log.debug('Updating config %s', path)
+
+        config = self.load_file(path)
         config.update(data)
 
-        self.write_file(self.local_config, config)
+        self.write_file(path, config)
         self.data.update(data)
 
     def update_session(self, data):
 
         path = self.session_paths(
-            self.data['project'],
-            self.data['session'])[0]
+            self.data['project'])[0]
 
         self.log.debug('Updating session %s', path)
 
@@ -143,7 +151,7 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
         self.session.update(data)
 
     def activate_environment(self, value):
-        env_key = self.session.setdefault('environment', None)
+        env_key = self.session['environment']
 
         if value == env_key:
             self.log.debug('Current environment is already active: %s', value)
@@ -163,11 +171,8 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
 
     def session_paths(self, project):
         path = os.path.join(
-            os.path.expanduser('~'),
-            '.cloudseed',
-            project,
-            'session'
-            )
+            self.project_path(project),
+            'session')
 
         return [path]
 
@@ -176,17 +181,13 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
         if not value:
             return []
 
-        user_dir = os.path.join(
-            os.path.expanduser('~'),
-            '.cloudseed')
+        project_env = os.path.join(
+            self.project_env_path(project, value),
+            'profile')
 
-        local_dir = os.path.join(
-            os.getcwd(),
-            '.cloudseed'
-            )
-
-        project_env = os.path.join(user_dir, project, value, 'profile')
-        local_env = os.path.join(local_dir, value, 'profile')
+        local_env = os.path.join(
+            self.local_env_path(value),
+            'profile')
 
         return [project_env, local_env]
 
@@ -198,10 +199,19 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
             session = self.load_file(session_config)
         else:
             with config_key_error():
-                session_paths = self.session_paths(
-                    self.data['project'])
+                project = self.data['project']
+
+                session_paths = self.session_paths(project)
                 session = self.load_file(*session_paths)
 
+        try:
+            env_path = self.local_env_path(session['environment'])
+            env_config = os.path.join(env_path, 'config')
+            self.data.update(self.load_file(env_config))
+        except KeyError:
+            pass
+
+        session.setdefault('environment', None)
         return session
 
     def load_env_profile(self, value):
@@ -210,8 +220,6 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
             self.log.debug('No environment currently set')
             return {}
 
-        path = os.path.abspath(value)
-
         # This is really dangerous, we are not checking
         # where we are loading this file from. Whatever is
         # passed here will be run though a YAML decoder
@@ -219,7 +227,7 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
         # Whatever the user executing this script has read access
         # to is fair game.
 
-        if os.path.isfile(path):
+        if os.path.isabs(value):
             self.log.debug('Loading environment data for %s', path)
             env_key = os.path.basename(path)
             self.session['environment'] = env_key
@@ -242,14 +250,10 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
         self.log.debug('Loading configuration')
         local_data = {}
 
-        user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
-        self.log.debug('User dir %s', user_dir)
-
-        if not global_config:
-            global_config = '{0}/config'.format(user_dir)
+        if not local_config:
+            local_config = os.path.join(self.local_path(), 'config')
 
         self.log.debug('Loading local config: %s', local_config)
-
         local_data = self.load_file(local_config)
 
         if not local_data:
@@ -259,8 +263,11 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
             project = local_data['project']
             self.log.debug('Project name is: %s', project)
 
+        if not global_config:
+            global_config = os.path.join(self.user_path(), 'config')
+
         if not project_config:
-            project_config = '{0}/{1}/config'.format(user_dir, project)
+            project_config = os.path.join(self.project_path(project), 'config')
 
         self.log.debug(
             'Loading global and project configs: %s, %s',

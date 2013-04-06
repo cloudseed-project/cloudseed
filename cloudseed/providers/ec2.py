@@ -256,10 +256,9 @@ class EC2Provider(Loggable):
 
         self.log.debug('Naming instance  %s', instance_name)
         self.log.debug('Instance available at %s', instance.public_dns_name)
-        self.config.update_session({'bootstrap': instance.public_dns_name.encode('utf-8')})
+        self.config.update_session({'master': instance.public_dns_name.encode('utf-8')})
 
         instance.add_tag('Name', instance_name)
-        #import pdb; pdb.set_trace()
         #self.kill_all_instances()
 
     def kill_all_instances(self):

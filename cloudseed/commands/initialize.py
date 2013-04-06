@@ -14,7 +14,7 @@ import logging
 import sys
 from subprocess import call
 from docopt import docopt
-from cloudseed.utils.filesystem import YAMLWriter
+from cloudseed.utils.filesystem import (Filesystem)
 
 log = logging.getLogger(__name__)
 
@@ -36,17 +36,14 @@ def run(config, argv):
 def init_cloudseed_environment(config, args):
     env_name = args['<environment>']
     project_name = config.data['project']
-    cwd = os.getcwd()
 
-    write_file = YAMLWriter.write_file
+    write_file = Filesystem.write_file
 
-    user_dir = os.path.join(os.path.expanduser('~'), '.cloudseed')
-
-    local_dir = os.path.join(cwd, '.cloudseed')
-    env_dir = os.path.join(local_dir, env_name)
+    env_dir = Filesystem.local_env_path(env_name)
     profile_path = os.path.join(env_dir, 'profile')
     master_path = os.path.join(env_dir, 'master')
-    project_env_dir = os.path.join(user_dir, project_name, env_name)
+    config_path = os.path.join(env_dir, 'config')
+    project_env_dir = Filesystem.project_env_path(project_name, env_name)
 
     profile = {
         'bootstrap': {
@@ -67,6 +64,10 @@ def init_cloudseed_environment(config, args):
         ]
     }
 
+    config = {
+
+    }
+
     if not os.path.isdir(env_dir):
         log.debug('Creating directory %s', env_dir)
         os.mkdir(env_dir)
@@ -75,6 +76,11 @@ def init_cloudseed_environment(config, args):
         log.debug('%s already exists, will not overwrite', profile_path)
     else:
         write_file(profile_path, profile)
+
+    if os.path.exists(config_path):
+        log.debug('%s already exists, will not overwrite', config_path)
+    else:
+        open(config_path, 'w').close()
 
     if os.path.exists(master_path):
         log.debug('%s already exists, will not overwrite', master_path)
@@ -101,23 +107,17 @@ def init_cloudseed_environment(config, args):
 
 
 def init_cloudseed_project(config, args):
-    write_file = YAMLWriter.write_file
-
-    cwd = os.getcwd()
+    write_file = Filesystem.write_file
     project_name = args['<name>']
 
-    user_dir = os.path.join(os.path.expanduser('~'), '.cloudseed')
-    local_dir = os.path.join(cwd, '.cloudseed')
-    project_dir = os.path.join(user_dir, project_name)
+    user_dir = Filesystem.user_path()
+    local_dir = Filesystem.local_path()
+    project_dir = Filesystem.project_path(project_name)
 
     local_config_path = os.path.join(local_dir, 'config')
 
     local_data = {
         'project': project_name,
-    }
-
-    session_data = {
-        'environment': None
     }
 
     if not os.path.isdir(user_dir):
@@ -140,7 +140,8 @@ def init_cloudseed_project(config, args):
         log.debug('Creating empty config %s', project_config)
         open(project_config, 'w').close()
 
-        write_file(session_config, session_data)
+        log.debug('Creating empty session %s', session_config)
+        open(session_config, 'w').close()
 
     if not os.path.isdir(local_dir):
         log.debug('Creating directory %s', local_dir)
