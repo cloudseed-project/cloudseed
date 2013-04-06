@@ -1,10 +1,10 @@
 '''
 usage:
-  cloudseed bootstrap <profile>
+  cloudseed bootstrap <environment>
 
 options:
   -h, --help               Show this screen.
-  <profile>                The profile name in your .cloudseed/ folder to load
+  <environment>                The profile name in your .cloudseed/ folder to load
 
 '''
 from docopt import docopt
@@ -12,6 +12,6 @@ from docopt import docopt
 
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
-    profile = args['<profile>']
-    config.activate_profile(profile)
+    environment = args['<environment>']
+    config.activate_environment(environment)
     config.provider.bootstrap()

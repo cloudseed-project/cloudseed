@@ -10,8 +10,8 @@ class ConfigNotFound(CloudseedError):
     '''Cloudseed config not found'''
 
 
-class InvalidProfile(CloudseedError):
-    '''Invalid Cloudseed profile'''
+class InvalidEnvironment(CloudseedError):
+    '''Invalid Cloudseed environment'''
 
 
 class UnknownConfigProvider(CloudseedError):

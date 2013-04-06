@@ -1,12 +1,10 @@
 import os
-import uuid
-import yaml
 from stevedore import driver
 from cloudseed.utils.logging import Loggable
 from cloudseed.utils.filesystem import (YAMLReader, YAMLWriter)
 from cloudseed.utils.exceptions import config_key_error
 from cloudseed.exceptions import (
-    ConfigNotFound, UnknownConfigProvider, InvalidProfile,
+    ConfigNotFound, UnknownConfigProvider, InvalidEnvironment,
 )
 
 
@@ -64,9 +62,9 @@ class Config(Loggable):
         self.log.debug('Updating session with %s', data)
         self.resource.update_session(data)
 
-    def activate_profile(self, value):
-        self.log.debug('Activating profile: %s', value)
-        self.resource.activate_profile(value)
+    def activate_environment(self, value):
+        self.log.debug('Activating environment: %s', value)
+        self.resource.activate_environment(value)
 
 
 class MemoryConfig(Loggable):
@@ -79,8 +77,8 @@ class MemoryConfig(Loggable):
         self.session = {} if session is None else session
         self.profile = {} if profile is None else profile
 
-    def activate_profile(self, value):
-        self.session['profile'] = value
+    def activate_environment(self, value):
+        self.session['environment'] = value
 
     def update_config(self, data):
         self.data.update(data)
@@ -118,7 +116,7 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
         if not profile_config \
         else profile_config
 
-        self.profile = self.load_profile(env_key)
+        self.profile = self.load_env_profile(env_key)
 
     def update_config(self, data):
 
@@ -144,23 +142,20 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
         self.write_file(path, session)
         self.session.update(data)
 
-    def activate_profile(self, value):
-        profile_key = self.session.setdefault('profile', None)
+    def activate_environment(self, value):
+        env_key = self.session.setdefault('environment', None)
 
-        if value == profile_key:
-            self.log.debug('Current profile is already active: %s', value)
+        if value == env_key:
+            self.log.debug('Current environment is already active: %s', value)
             return
 
-        self.profile = self.load_profile(value)
-
-        session_id = self.data.setdefault('session', uuid.uuid4().hex)
+        self.profile = self.load_env_profile(value)
 
         self.log.debug('Updating session profile to: %s', value)
-        self.session['profile'] = value
+        self.session['environment'] = value
 
         session_path = self.session_paths(
-            self.data['project'],
-            session_id)[0]
+            self.data['project'])[0]
 
         self.log.debug('Writing active profile to session %s', session_path)
 
@@ -176,16 +171,24 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
 
         return [path]
 
-    def profile_paths(self, project, value):
+    def env_profile_paths(self, project, value):
 
         if not value:
             return []
 
-        user_dir = '{0}/.cloudseed'.format(os.path.expanduser('~'))
-        project_profile = '{0}/{1}/{2}'.format(user_dir, project, value)
-        local_profile = './.cloudseed/{0}/profile'.format(value)
+        user_dir = os.path.join(
+            os.path.expanduser('~'),
+            '.cloudseed')
 
-        return [project_profile, local_profile]
+        local_dir = os.path.join(
+            os.getcwd(),
+            '.cloudseed'
+            )
+
+        project_env = os.path.join(user_dir, project, value, 'profile')
+        local_env = os.path.join(local_dir, value, 'profile')
+
+        return [project_env, local_env]
 
     def load_session(self, session_config=None):
         self.log.debug('Loading session data')
@@ -201,10 +204,10 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
 
         return session
 
-    def load_profile(self, value):
+    def load_env_profile(self, value):
 
         if not value:
-            self.log.debug('No profile currently set')
+            self.log.debug('No environment currently set')
             return {}
 
         path = os.path.abspath(value)
@@ -217,23 +220,23 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
         # to is fair game.
 
         if os.path.isfile(path):
-            self.log.debug('Loading profile data for %s', path)
-            profile_key = os.path.basename(path)
-            self.session['profile'] = profile_key
+            self.log.debug('Loading environment data for %s', path)
+            env_key = os.path.basename(path)
+            self.session['environment'] = env_key
             return self.load_file(path)
         else:
-            self.log.debug('Loading profile data for %s', value)
-            profile_paths = self.profile_paths(
+            self.log.debug('Loading environment profile for %s', value)
+            env_paths = self.env_profile_paths(
                 self.data['project'],
                 value)
 
-            profile = self.load_file(*profile_paths)
+            env = self.load_file(*env_paths)
 
-            if not profile:
-                self.log.error('No profile information found in %s', profile_paths)
-                raise InvalidProfile
+            if not env:
+                self.log.error('No environment profile information found in %s', env_paths)
+                raise InvalidEnvironment
 
-            return profile
+            return env
 
     def load_config(self, local_config, project_config=None, global_config=None):
         self.log.debug('Loading configuration')
@@ -267,30 +270,3 @@ class FilesystemConfig(Loggable, YAMLReader, YAMLWriter):
         data.update(local_data)
 
         return data
-
-    def load_file(self, *args):
-        data = {}
-
-        for path in args:
-            try:
-                self.log.debug('Loading file %s', path)
-
-                with open(path) as f:
-                    try:
-                        data.update(yaml.load(f))
-                    except Exception as e:
-                        self.log.warning('Unable to merge data from file %s: %s', path, e.message)
-            except IOError:
-                self.log.warning('Failed to load file %s', path)
-
-        return data
-
-    def write_file(self, path, data):
-        self.log.debug('Writing file to %s with %s', path, data)
-
-        try:
-            with open(path, 'w') as f:
-                f.write(yaml.dump(data, default_flow_style=False))
-        except IOError:
-            self.log.error('Failed writing file %s with %s', path, data)
-            raise
