@@ -108,7 +108,12 @@ class FilesystemConfig(Loggable):
             global_config)
 
         self.session = self.load_session(session_config)
-        self.profile = self.load_profile(profile_config)
+
+        profile_key = self.session['profile'] \
+        if not profile_config \
+        else profile_config
+
+        self.profile = self.load_profile(profile_key)
 
     def update_config(self, data):
 
@@ -193,6 +198,7 @@ class FilesystemConfig(Loggable):
     def load_profile(self, value):
 
         if not value:
+            self.log.debug('No profile currently set')
             return {}
 
         path = os.path.abspath(value)
@@ -210,10 +216,6 @@ class FilesystemConfig(Loggable):
             self.session['profile'] = profile_key
             return self.load_file(path)
         else:
-            if not value:
-                self.log.debug('No profile currently set')
-                return {}
-
             self.log.debug('Loading profile data for %s', value)
             profile_paths = self.profile_paths(
                 self.data['project'],
