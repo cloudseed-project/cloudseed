@@ -50,7 +50,11 @@ common commands:
             from cloudseed.commands import bootstrap
             bootstrap.run(config, argv)
 
-        if command == 'ssh':
+        elif command == 'config':
+            from cloudseed.commands import config as cfg
+            cfg.run(config, argv)
+
+        elif command == 'ssh':
             from cloudseed.commands import ssh
             ssh.run(config, argv)
 
