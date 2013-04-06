@@ -54,13 +54,9 @@ class Config(Loggable):
     def profile(self):
         return self.resource.profile
 
-    def update_config(self, data, target):
+    def update_config(self, data):
         self.log.debug('Updating config with %s', data)
-        self.resource.update_config(data, target)
-
-    def update_project_config(self, data):
-        self.log.debug('Updating project config with %s', data)
-        self.resource.update_project_config(data)
+        self.resource.update_config(data)
 
     def update_session(self, data):
         self.log.debug('Updating session with %s', data)
@@ -122,12 +118,10 @@ class FilesystemConfig(Loggable, Filesystem):
 
         self.profile = self.load_env_profile(env_key)
 
-    def update_config(self, data, target):
-
-        if os.path.isabs(target):
-            path = target
-        else:
-            path = self.local_path()
+    def update_config(self, data):
+        path = os.path.join(
+            self.local_env_path(self.session['environment']),
+            'config')
 
         self.log.debug('Updating config %s', path)
 
@@ -228,10 +222,10 @@ class FilesystemConfig(Loggable, Filesystem):
         # to is fair game.
 
         if os.path.isabs(value):
-            self.log.debug('Loading environment data for %s', path)
-            env_key = os.path.basename(path)
+            self.log.debug('Loading environment data for %s', value)
+            env_key = os.path.basename(value)
             self.session['environment'] = env_key
-            return self.load_file(path)
+            return self.load_file(value)
         else:
             self.log.debug('Loading environment profile for %s', value)
             env_paths = self.env_profile_paths(

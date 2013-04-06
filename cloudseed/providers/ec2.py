@@ -40,7 +40,7 @@ class EC2Provider(Loggable):
                 region=region)
 
     def ssh_identity(self):
-        return self.config.data['ec2.key_path']
+        return os.path.expanduser(self.config.data['ec2.key_path'])
 
     def deploy_config(self, context):
         data = self.config.data.copy()
@@ -51,8 +51,8 @@ class EC2Provider(Loggable):
         return yaml.dump(self.config.profile, default_flow_style=False)
 
     def deploy_extras(self, context):
-
-        with open(self.config.data['ec2.key_path']) as f:
+        key_path = os.path.expanduser(self.config.data['ec2.key_path'])
+        with open(key_path) as f:
             key = f.read()
 
         return ['echo "{0}" > /etc/salt/cloudseed.pem'.format(key)]
@@ -79,7 +79,7 @@ class EC2Provider(Loggable):
 
         with config_key_error():
             ec2_key_name = self.config.data['ec2.key_name']
-            ec2_key_path = self.config.data['ec2.key_path']
+            ec2_key_path = os.path.expanduser(self.config.data['ec2.key_path'])
 
         if not os.path.isfile(ec2_key_path):
             self.log.error('Unable to locate key at %s', ec2_key_path)
@@ -256,7 +256,7 @@ class EC2Provider(Loggable):
 
         self.log.debug('Naming instance  %s', instance_name)
         self.log.debug('Instance available at %s', instance.public_dns_name)
-        self.config.update_session({'master': instance.public_dns_name.encode('utf-8')})
+        self.config.update_config({'master': instance.public_dns_name.encode('utf-8')})
 
         instance.add_tag('Name', instance_name)
         #self.kill_all_instances()

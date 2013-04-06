@@ -14,4 +14,4 @@ def run(config, argv):
     args = docopt(__doc__, argv=argv)
     environment = args['<environment>']
     config.activate_environment(environment)
-    #config.provider.bootstrap()
+    config.provider.bootstrap()

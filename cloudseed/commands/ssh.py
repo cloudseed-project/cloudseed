@@ -7,8 +7,10 @@ options:
 '''
 import logging
 from subprocess import call
-from cloudseed.exceptions import MissingSessionKey, ProviderError
-from cloudseed.utils.exceptions import profile_key_error
+from cloudseed.exceptions import ProviderError
+from cloudseed.utils.exceptions import (
+    profile_key_error, config_key_error
+)
 
 
 log = logging.getLogger(__name__)
@@ -19,11 +21,8 @@ def run(config, argv):
     with profile_key_error():
         username = config.profile['bootstrap']['ssh_username']
 
-    try:
-        hostname = config.session['bootstrap']
-    except KeyError:
-        log.error('You must bootstrap a profile before you can ssh')
-        raise MissingSessionKey('bootstrap')
+    with config_key_error():
+        hostname = config.data['master']
 
     identity = config.provider.ssh_identity()
 
