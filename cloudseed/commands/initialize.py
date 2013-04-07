@@ -51,6 +51,13 @@ def init_cloudseed_environment(config, args):
             'size': '<server size>',
             'script': '<bootstrap script>',
             'ssh_username': '<ssh username>',
+        },
+
+        'minion': {
+            'image': '<server image>',
+            'size': '<server size>',
+            'script': '<bootstrap script>',
+            'ssh_username': '<ssh username>',
         }
     }
 
@@ -59,6 +66,7 @@ def init_cloudseed_environment(config, args):
             'roots',
             'git'
         ],
+
         'gitfs_remotes': [
           'git://github.com/cloudseed-project/cloudseed-states.git'
         ],
