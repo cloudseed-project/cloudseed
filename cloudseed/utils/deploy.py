@@ -7,6 +7,7 @@ from __future__ import absolute_import
 import os
 import logging
 from jinja2 import Template
+from cloudseed.utils.filesystem import Filesystem
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +34,21 @@ def bootstrap_script(script, profile, config):
     frozen_profile = config.provider.deploy_profile('master')
     extras = config.provider.deploy_extras('master')
 
+    project = config.data['project']
+    env = config.session['environment']
+
+    master_project_path = os.path.join(
+        Filesystem.project_path(project),
+        'master')
+
+    master_env_path = os.path.join(
+        Filesystem.local_env_path(env),
+        'master'
+        )
+
+    data = Filesystem.load_file(master_project_path, master_env_path)
+    master = Filesystem.encode(data)
+
     if os.path.isabs(script):
         # The user provided an absolute path to the deploy script, let's use it
         return __render_script(
@@ -40,7 +56,7 @@ def bootstrap_script(script, profile, config):
             profile=frozen_profile,
             config=frozen_config,
             extras=extras,
-            master='master')
+            master=master)
 
     if os.path.isabs('{0}.sh'.format(script)):
         # The user provided an absolute path to the deploy script, although no
@@ -50,7 +66,7 @@ def bootstrap_script(script, profile, config):
             profile=frozen_profile,
             config=frozen_config,
             extras=extras,
-            master='master')
+            master=master)
 
     for search_path in config.master_script_paths:
         if os.path.isfile(os.path.join(search_path, script)):
@@ -59,8 +75,7 @@ def bootstrap_script(script, profile, config):
                 profile=frozen_profile,
                 config=frozen_config,
                 extras=extras,
-                master='master'
-            )
+                master=master)
 
         if os.path.isfile(os.path.join(search_path, '{0}.sh'.format(script))):
             return __render_script(
@@ -68,8 +83,7 @@ def bootstrap_script(script, profile, config):
                 profile=frozen_profile,
                 config=frozen_config,
                 extras=extras,
-                master='master'
-            )
+                master=master)
 
     # No deploy script was found, return an empty string
     return ''

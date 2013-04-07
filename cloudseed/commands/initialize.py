@@ -90,20 +90,20 @@ def init_cloudseed_environment(config, args):
     if not os.path.isdir(project_env_dir):
         os.mkdir(project_env_dir)
 
-        project_env_profile = os.path.join(project_env_dir, 'profile')
-        project_env_master = os.path.join(project_env_dir, 'master')
+        # project_env_profile = os.path.join(project_env_dir, 'profile')
+        # project_env_master = os.path.join(project_env_dir, 'master')
 
-        log.debug(
-            'Creating empty project profile %s',
-            project_env_profile)
+        # log.debug(
+        #     'Creating empty project profile %s',
+        #     project_env_profile)
 
-        open(project_env_profile, 'w').close()
+        # open(project_env_profile, 'w').close()
 
-        log.debug(
-            'Creating empty project master %s',
-            project_env_master)
+        # log.debug(
+        #     'Creating empty project master %s',
+        #     project_env_master)
 
-        open(project_env_master, 'w').close()
+        # open(project_env_master, 'w').close()
 
 
 def init_cloudseed_project(config, args):
@@ -136,12 +136,20 @@ def init_cloudseed_project(config, args):
         # make empty project level config
         project_config = os.path.join(project_dir, 'config')
         session_config = os.path.join(project_dir, 'session')
+        master_config = os.path.join(project_dir, 'master')
+        profile_config = os.path.join(project_dir, 'profile')
 
         log.debug('Creating empty config %s', project_config)
         open(project_config, 'w').close()
 
         log.debug('Creating empty session %s', session_config)
         open(session_config, 'w').close()
+
+        log.debug('Creating empty salt master config %s', session_config)
+        open(master_config, 'w').close()
+
+        log.debug('Creating empty profile %s', session_config)
+        open(profile_config, 'w').close()
 
     if not os.path.isdir(local_dir):
         log.debug('Creating directory %s', local_dir)

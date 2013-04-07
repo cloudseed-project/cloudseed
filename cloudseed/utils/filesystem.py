@@ -37,6 +37,10 @@ class YAMLReader(object):
     log = logging.getLogger(__name__)
 
     @staticmethod
+    def decode(data):
+        return yaml.load(data)
+
+    @staticmethod
     def load_file(*args):
         data = {}
 
@@ -46,7 +50,7 @@ class YAMLReader(object):
 
                 with open(path) as f:
                     try:
-                        data.update(yaml.load(f))
+                        data.update(YAMLReader.decode(f))
                     except Exception as e:
                         log.warning(
                             'Unable to merge data from file %s: %s',
@@ -61,12 +65,16 @@ class YAMLWriter(object):
     log = logging.getLogger(__name__)
 
     @staticmethod
+    def encode(data):
+        return yaml.dump(data, default_flow_style=False)
+
+    @staticmethod
     def write_file(path, data):
         log.debug('Writing file to %s with %s', path, data)
 
         try:
             with open(path, 'w') as f:
-                f.write(yaml.dump(data, default_flow_style=False))
+                f.write(YAMLWriter.encode(data))
         except IOError:
             log.error('Failed writing file %s with %s', path, data)
             raise

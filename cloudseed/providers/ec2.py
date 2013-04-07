@@ -42,15 +42,15 @@ class EC2Provider(Loggable):
     def ssh_identity(self):
         return os.path.expanduser(self.config.data['ec2.key_path'])
 
-    def deploy_config(self, context):
+    def deploy_config(self, context=None):
         data = self.config.data.copy()
         data['ec2.key_path'] = '/etc/salt/cloudseed.pem'
         return yaml.dump(data, default_flow_style=False)
 
-    def deploy_profile(self, context):
+    def deploy_profile(self, context=None):
         return yaml.dump(self.config.profile, default_flow_style=False)
 
-    def deploy_extras(self, context):
+    def deploy_extras(self, context=None):
         key_path = os.path.expanduser(self.config.data['ec2.key_path'])
         with open(key_path) as f:
             key = f.read()
