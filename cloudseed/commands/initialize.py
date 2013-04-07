@@ -87,23 +87,23 @@ def init_cloudseed_environment(config, args):
     else:
         write_file(master_path, master)
 
-    if not os.path.isdir(project_env_dir):
-        os.mkdir(project_env_dir)
+    # if not os.path.isdir(project_env_dir):
+    #     os.mkdir(project_env_dir)
 
-        # project_env_profile = os.path.join(project_env_dir, 'profile')
-        # project_env_master = os.path.join(project_env_dir, 'master')
+    #     project_env_profile = os.path.join(project_env_dir, 'profile')
+    #     project_env_master = os.path.join(project_env_dir, 'master')
 
-        # log.debug(
-        #     'Creating empty project profile %s',
-        #     project_env_profile)
+    #     log.debug(
+    #         'Creating empty project profile %s',
+    #         project_env_profile)
 
-        # open(project_env_profile, 'w').close()
+    #     open(project_env_profile, 'w').close()
 
-        # log.debug(
-        #     'Creating empty project master %s',
-        #     project_env_master)
+    #     log.debug(
+    #         'Creating empty project master %s',
+    #         project_env_master)
 
-        # open(project_env_master, 'w').close()
+    #     open(project_env_master, 'w').close()
 
 
 def init_cloudseed_project(config, args):
