@@ -17,7 +17,7 @@ apt-get install -y -o DPkg::Options::=--force-confold salt-master
 salt-key --gen-keys=master
 cp master.pub /etc/salt/pki/master/minions/master.pub
 mkdir -p /etc/salt/pki/minion
-mv master.pub /etc/salt/pki/minion/master.pub
-mv master.pem /etc/salt/pki/minion/master.pem
+mv master.pub /etc/salt/pki/minion/minion.pub
+mv master.pem /etc/salt/pki/minion/minion.pem
 apt-get install -y -o DPkg::Options::=--force-confold salt-minion
-salt 'matser' state.highstate
+salt 'master' state.highstate
