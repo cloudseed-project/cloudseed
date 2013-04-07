@@ -52,11 +52,11 @@ class YAMLReader(object):
                     try:
                         data.update(YAMLReader.decode(f))
                     except Exception as e:
-                        log.warning(
+                        log.debug(
                             'Unable to merge data from file %s: %s',
                             path, e.message)
             except IOError:
-                log.warning('Failed to load file %s', path)
+                log.debug('Failed to load file %s', path)
 
         return data
 

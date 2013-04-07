@@ -57,6 +57,10 @@ common commands:
         from cloudseed.commands import ssh
         ssh.run(config, argv)
 
+    elif command == 'status':
+        from cloudseed.commands import status
+        status.run(config, argv)
+
     elif args['<command>'] in ('help', None):
         exit(call(['cloudseed', '--help']))
 
