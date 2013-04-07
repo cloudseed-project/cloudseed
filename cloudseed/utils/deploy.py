@@ -16,7 +16,7 @@ def __render_script(path, **kwargs):
     '''
     Return the rendered script
     '''
-    log.info('Rendering deploy script: {0}'.format(path))
+    log.debug('Rendering deploy script: {0}'.format(path))
 
     try:
         with open(path, 'r') as fp_:

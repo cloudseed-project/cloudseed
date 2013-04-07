@@ -58,7 +58,7 @@ class EC2Provider(Loggable):
         return ['echo "{0}" > /etc/salt/cloudseed.pem'.format(key)]
 
     def bootstrap(self):
-        self.log.info('Creating bootstrap node')
+        self.log.debug('Creating bootstrap node')
         try:
             self.verify_keys()
         except NeedsEc2Key:
@@ -251,7 +251,7 @@ class EC2Provider(Loggable):
         instance = reservation.instances[0]
         instance_name = 'cloudseed-{0}-0'.format(self.config.data['project'].lower())
 
-        self.log.info('Waiting for instance to become available, this can take a minute or so.')
+        self.log.debug('Waiting for instance to become available, this can take a minute or so.')
 
         while True:
             instance.update()

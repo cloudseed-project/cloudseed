@@ -5,10 +5,10 @@ __version__ = '0.0.1'
 # logging
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
+console.setLevel(logging.INFO)
 
 formatter = logging.Formatter('[%(levelname)s] : %(name)s - %(message)s')
 console.setFormatter(formatter)
