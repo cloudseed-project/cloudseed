@@ -100,8 +100,8 @@ class Filesystem(YAMLReader, YAMLWriter):
             Filesystem.user_path(),
             project)
 
-    @staticmethod
-    def project_env_path(project, env):
-        return os.path.join(
-            Filesystem.project_path(project),
-            env)
+    # @staticmethod
+    # def project_env_path(project, env):
+    #     return os.path.join(
+    #         Filesystem.project_path(project),
+    #         env)

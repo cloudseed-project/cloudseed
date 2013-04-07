@@ -43,7 +43,7 @@ def init_cloudseed_environment(config, args):
     profile_path = os.path.join(env_dir, 'profile')
     master_path = os.path.join(env_dir, 'master')
     config_path = os.path.join(env_dir, 'config')
-    project_env_dir = Filesystem.project_env_path(project_name, env_name)
+    # project_env_dir = Filesystem.project_env_path(project_name, env_name)
 
     profile = {
         'bootstrap': {

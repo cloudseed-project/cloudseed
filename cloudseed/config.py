@@ -176,7 +176,7 @@ class FilesystemConfig(Loggable, Filesystem):
             return []
 
         project_env = os.path.join(
-            self.project_env_path(project, value),
+            self.project_path(project),
             'profile')
 
         local_env = os.path.join(
