@@ -14,16 +14,18 @@ usage:
             <command> [<args>...]
 
 options:
-  -c --config=<config>    Config to use [default: ./.cloudseed/config]
-  -p --profile=<profile>  Profile to use
-  -h --help               Show this screen.
-  --version               Show version.
+  -c --config=<config>    config to use [default: ./.cloudseed/config]
+  -p --profile=<profile>  profile to use
+  -h --help               show this screen.
+  --version               show version.
 
 common commands:
-    bootstrap <profile>   Deploy a Salt Master based on a .cloudseed profile
-    init <name>           Initialize a new .cloudseed configuration
-    ssh                   SSH into the master server, requires bootstrap
-    status                Current cloudseed status
+    init <project>            initialize a new .cloudseed <project>
+    init env <environment>    initialize a new .cloudseed <environment> for the current project
+    bootstrap <environment>   deploy a salt master for the specified <environment>
+    ssh                       ssh into the master server, requires bootstrap
+    status                    current cloudseed status
+    env <environment>         charge cloudseed environment to specified <environment>
     '''
     args = docopt(
         cloudseed_main.__doc__,

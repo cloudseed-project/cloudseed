@@ -1,11 +1,11 @@
 '''
 usage:
   cloudseed init env <environment>
-  cloudseed init <name>
+  cloudseed init <project>
 
 options:
   -h, --help            Show this screen.
-  <name>                The name of the cloudseed project.
+  <project>                The name of the cloudseed project.
   <environment>         Initialize a new environment
 
 '''
@@ -21,21 +21,21 @@ log = logging.getLogger(__name__)
 
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
-    if args['<name>'] == 'env':
+    if args['<project>'] == 'env':
         sys.stdout.write('\nname cant be "env"\n\n')
         exit(call(['cloudseed', 'init', '--help']))
-    elif args['<name>'] is not None:
+    elif args['<project>'] is not None:
         init_cloudseed_project(config, args)
     elif args['<environment>'] is not None:
         if not os.path.isdir('./.cloudseed'):
-            sys.stdout.write("\nmust call 'cloudseed init <name>' first\n\n")
+            sys.stdout.write("\nmust call 'cloudseed init <project>' first\n\n")
             exit(call(['cloudseed', 'init', '--help']))
         init_cloudseed_environment(config, args)
 
 
 def init_cloudseed_environment(config, args):
     env_name = args['<environment>']
-    project_name = config.data['project']
+    # project_name = config.data['project']
 
     write_file = Filesystem.write_file
 
@@ -64,9 +64,9 @@ def init_cloudseed_environment(config, args):
         ]
     }
 
-    config = {
+    # config = {
 
-    }
+    # }
 
     if not os.path.isdir(env_dir):
         log.debug('Creating directory %s', env_dir)
@@ -108,7 +108,7 @@ def init_cloudseed_environment(config, args):
 
 def init_cloudseed_project(config, args):
     write_file = Filesystem.write_file
-    project_name = args['<name>']
+    project_name = args['<project>']
 
     user_dir = Filesystem.user_path()
     local_dir = Filesystem.local_path()
