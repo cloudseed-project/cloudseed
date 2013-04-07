@@ -15,7 +15,7 @@ apt-get install -y git python-pip
 pip install gitpython
 apt-get install -y -o DPkg::Options::=--force-confold salt-master
 salt-key --gen-keys=master
-cp master.pub /etc/salt/pki/master/minions/master.pub
+cp master.pub /etc/salt/pki/master/minions/master
 mkdir -p /etc/salt/pki/minion
 mv master.pub /etc/salt/pki/minion/minion.pub
 mv master.pem /etc/salt/pki/minion/minion.pem
