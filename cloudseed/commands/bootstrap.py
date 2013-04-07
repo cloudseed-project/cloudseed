@@ -21,7 +21,6 @@ def run(config, argv):
         if env != current_env:
             config.activate_environment(env)
             current_env = env
-    import pdb; pdb.set_trace()
 
     if current_env:
         sys.stdout.write('Bootstrapping \'{0}\'\n'.format(current_env))
