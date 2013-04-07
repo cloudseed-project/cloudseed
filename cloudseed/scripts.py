@@ -76,4 +76,6 @@ def main():
         cloudseed_main()
     except DocoptExit:
         exit(call(['cloudseed', '--help']))
+    except KeyboardInterrupt:
+        pass
 
