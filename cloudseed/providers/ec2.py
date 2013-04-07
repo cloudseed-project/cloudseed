@@ -254,10 +254,13 @@ class EC2Provider(Loggable):
         self.log.debug('Waiting for instance to become available, this can take a minute or so.')
 
         while True:
-            instance.update()
-
             if instance.public_dns_name:
                 break;
+
+            try:
+                instance.update()
+            except EC2ResponseError:
+                pass
 
             time.sleep(3)
 
