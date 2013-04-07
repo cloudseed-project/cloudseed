@@ -4,7 +4,7 @@ usage:
 
 options:
   -h, --help               Show this screen.
-  <environment>                The profile name in your .cloudseed/ folder to load
+  <environment>            The profile name in your .cloudseed/ folder to load
 
 '''
 from docopt import docopt

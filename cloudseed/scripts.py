@@ -49,10 +49,6 @@ common commands:
         from cloudseed.commands import bootstrap
         bootstrap.run(config, argv)
 
-    elif command == 'config':
-        from cloudseed.commands import config as cfg
-        cfg.run(config, argv)
-
     elif command == 'ssh':
         from cloudseed.commands import ssh
         ssh.run(config, argv)
@@ -60,6 +56,10 @@ common commands:
     elif command == 'status':
         from cloudseed.commands import status
         status.run(config, argv)
+
+    elif command == 'env':
+        from cloudseed.commands import env
+        env.run(config, argv)
 
     elif args['<command>'] in ('help', None):
         exit(call(['cloudseed', '--help']))
