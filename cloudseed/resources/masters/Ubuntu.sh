@@ -10,6 +10,6 @@ echo "{{ profile }}" > /etc/salt/cloudseed.profile; chmod 600 /etc/salt/cloudsee
 
 add-apt-repository ppa:saltstack/salt
 apt-get update
-apt-get install -y -o DPkg::Options::=--force-confold salt-master
 apt-get install -y git python-pip
 pip install gitpython
+apt-get install -y -o DPkg::Options::=--force-confold salt-master
