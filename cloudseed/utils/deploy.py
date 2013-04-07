@@ -47,7 +47,11 @@ def bootstrap_script(script, profile, config):
         )
 
     data = Filesystem.load_file(master_project_path, master_env_path)
+
     master = Filesystem.encode(data)
+    minion = Filesystem.encode(
+        {'id': 'master',
+        'master': 'localhost'})
 
     if os.path.isabs(script):
         # The user provided an absolute path to the deploy script, let's use it
@@ -56,7 +60,8 @@ def bootstrap_script(script, profile, config):
             profile=frozen_profile,
             config=frozen_config,
             extras=extras,
-            master=master)
+            master=master,
+            minion=minion)
 
     if os.path.isabs('{0}.sh'.format(script)):
         # The user provided an absolute path to the deploy script, although no
@@ -66,7 +71,8 @@ def bootstrap_script(script, profile, config):
             profile=frozen_profile,
             config=frozen_config,
             extras=extras,
-            master=master)
+            master=master,
+            minion=minion)
 
     for search_path in config.master_script_paths:
         if os.path.isfile(os.path.join(search_path, script)):
@@ -75,7 +81,8 @@ def bootstrap_script(script, profile, config):
                 profile=frozen_profile,
                 config=frozen_config,
                 extras=extras,
-                master=master)
+                master=master,
+                minion=minion)
 
         if os.path.isfile(os.path.join(search_path, '{0}.sh'.format(script))):
             return __render_script(
@@ -83,7 +90,8 @@ def bootstrap_script(script, profile, config):
                 profile=frozen_profile,
                 config=frozen_config,
                 extras=extras,
-                master=master)
+                master=master,
+                minion=minion)
 
     # No deploy script was found, return an empty string
     return ''
