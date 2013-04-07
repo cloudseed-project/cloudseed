@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 def run(config, argv):
 
     with profile_key_error():
-        username = config.profile['bootstrap']['ssh_username']
+        username = config.profile['master']['ssh_username']
 
     with config_key_error():
         hostname = config.data['master']

@@ -165,10 +165,17 @@ class EC2Provider(Loggable):
 
     def _base_security_groups(self):
         project = self.config.data['project'].lower()
+        env = self.config.session['environment']
+
         return {
-        'app': ('cloudseed-{0}'.format(project), 'Cloudseed group for {0}'.format(project)),
-        'ssh': ('cloudseed-{0}-SSH'.format(project), 'Cloudseed SSH for {0}'.format(project)),
-        'bootstrap': ('cloudseed-{0}-0'.format(project), 'Cloudseed group for {0} machine 0'.format(project)),
+        'app': ('cloudseed-{0}-{1}'.format(project, env),
+            'Cloudseed group for {0} {1}'.format(project, env)),
+
+        'ssh': ('cloudseed-{0}-{1}-SSH'.format(project, env),
+            'Cloudseed SSH for {0} {1}'.format(project, env)),
+
+        'master': ('cloudseed-{0}-{1}-0'.format(project, env),
+            'Cloudseed group for {0} {1} machine 0'.format(project, env)),
         }
 
     def _initialize_security_groups(self):
@@ -179,7 +186,7 @@ class EC2Provider(Loggable):
         base_groups = (
             groups['app'],
             groups['ssh'],
-            groups['bootstrap'],
+            groups['master'],
         )
 
         current_groups = conn.get_all_security_groups()
@@ -224,7 +231,7 @@ class EC2Provider(Loggable):
     def _build_master(self, security_groups):
 
         with profile_key_error():
-            profile = self.config.profile['bootstrap']
+            profile = self.config.profile['master']
 
         {'image': 'ami-bb709dd2',
         'size': 't1.micro'}

@@ -46,7 +46,7 @@ def init_cloudseed_environment(config, args):
     # project_env_dir = Filesystem.project_env_path(project_name, env_name)
 
     profile = {
-        'bootstrap': {
+        'master': {
             'image': '<server image>',
             'size': '<server size>',
             'script': '<bootstrap script>',
