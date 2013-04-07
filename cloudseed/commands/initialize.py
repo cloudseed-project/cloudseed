@@ -60,7 +60,7 @@ def init_cloudseed_environment(config, args):
             'git'
         ],
         'gitfs_remotes': [
-          'git://github.com/your/salt-states.git'
+          'git://github.com/cloudseed-project/cloudseed-states.git'
         ],
     }
 
