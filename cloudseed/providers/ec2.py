@@ -272,10 +272,22 @@ class EC2Provider(Loggable):
         #self.kill_all_instances()
 
     def kill_all_instances(self):
-        for r in self.conn.get_all_instances():
-            self.conn.terminate_instances(r.instances[0].id)
-            print(r.instances[0].id)
-            print(r.instances[0].state)
+        all_instances = self.conn.get_all_instances()
+        name = u'cloudseed-{0}-{1}'.format(self.config.data['project'],self.config.session['environment'])
+        for reservation in all_instances:
+            for group in reservation.groups:
+                if group.name == name:
+                    self._destroy_reservation_instances(reservation.instances)
+                    
+
+    def _destroy_reservation_instances(self,instances):
+        for instance in instances:
+            self.conn.terminate_instances(instance.id)
+
+        
+            
+            #self.conn.terminate_instances(r.instances[0].id)
+            
 
 
 

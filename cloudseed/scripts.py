@@ -26,6 +26,7 @@ common commands:
     ssh                       ssh into the master server, requires bootstrap
     status                    current cloudseed status
     env <environment>         charge cloudseed environment to specified <environment>
+    destroy <environment>     destroys all boxes associated with this environment
     '''
     args = docopt(
         cloudseed_main.__doc__,
@@ -62,6 +63,10 @@ common commands:
     elif command == 'env':
         from cloudseed.commands import env
         env.run(config, argv)
+
+    elif command == 'destroy':
+        from cloudseed.commands import destroy
+        destroy.run(config, argv)
 
     elif args['<command>'] in ('help', None):
         exit(call(['cloudseed', '--help']))
