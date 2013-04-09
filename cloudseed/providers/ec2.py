@@ -269,7 +269,6 @@ class EC2Provider(Loggable):
         self.config.update_config({'master': instance.public_dns_name.encode('utf-8')})
 
         instance.add_tag('Name', instance_name)
-        #self.kill_all_instances()
 
     def kill_all_instances(self):
 
