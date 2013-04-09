@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import logging
 from subprocess import call
 from docopt import docopt
 from docopt import DocoptExit
@@ -10,14 +11,17 @@ from cloudseed.config import FilesystemConfig
 def cloudseed_main():
     '''
 usage:
-  cloudseed [--version] [--help] [-c|--config=<config>] [-p|--profile=<profile>]
+  cloudseed [--version] [--verbose] [--help] [-c|--config=<config>] [-p|--profile=<profile>]
             <command> [<args>...]
 
 options:
   -c --config=<config>    config to use [default: ./.cloudseed/config]
   -p --profile=<profile>  profile to use
-  -h --help               show this screen.
-  --version               show version.
+  -h --help               show this screen
+  --verbose               show debug output
+  --version               show version
+
+
 
 common commands:
     init <project>            initialize a new .cloudseed <project>
@@ -35,6 +39,8 @@ common commands:
 
     command = args['<command>']
     argv = [args['<command>']] + args['<args>']
+
+    initialize_logging(verbose=args['--verbose'])
 
     try:
         profile = args['--profile'][0]
@@ -76,7 +82,22 @@ common commands:
             .format(args['<command>']))
 
 
+def initialize_logging(verbose=False):
+    log_level = logging.DEBUG if verbose else logging.INFO
+
+    logger = logging.getLogger('cloudseed')
+    logger.setLevel(log_level)
+
+    console = logging.StreamHandler()
+    console.setLevel(log_level)
+
+    formatter = logging.Formatter('[%(levelname)s] : %(name)s - %(message)s')
+    console.setFormatter(formatter)
+    logger.addHandler(console)
+
+
 def main():
+
     try:
         cloudseed_main()
     except DocoptExit:

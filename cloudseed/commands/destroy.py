@@ -1,19 +1,16 @@
 '''
 usage:
   cloudseed destroy <environment>
-  
+
 
 options:
   -h, --help            Show this screen.
   <environment>         Destroys a server environment (master and all boxes)
 
 '''
-import os
-import logging
 import sys
-from subprocess import call
+import logging
 from docopt import docopt
-from cloudseed.utils.filesystem import (Filesystem)
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +25,14 @@ def run(config, argv):
         if env != current_env:
             config.activate_environment(env)
             current_env = env
-        config.provider.kill_all_instances()
-    
-        
-    
+
+        answer = raw_input(
+            'Are you sure you want to destroy \'{0}\' [y/N] '\
+            .format(current_env))
+
+        if answer.lower() in ('y', 'yes', 'true', 't', '1'):
+            sys.stdout.write('Destroying environment \'{0}\'\n'.format(current_env))
+            config.provider.kill_all_instances()
+
+
+
