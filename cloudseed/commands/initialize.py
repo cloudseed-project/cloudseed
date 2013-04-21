@@ -132,6 +132,7 @@ def init_cloudseed_project(config, args):
     project_dir = Filesystem.project_path(project_name)
 
     local_config_path = os.path.join(local_dir, 'config')
+    local_providers_path = os.path.join(local_dir, 'providers')
 
     local_data = {
         'project': project_name,
@@ -155,26 +156,36 @@ def init_cloudseed_project(config, args):
         session_config = os.path.join(project_dir, 'session')
         master_config = os.path.join(project_dir, 'master')
         profile_config = os.path.join(project_dir, 'profile')
+        providers_config = os.path.join(project_dir, 'providers')
         states_dir = os.path.join(project_dir, 'states')
-
-        if not os.path.isdir(states_dir):
-            os.mkdir(states_dir)
 
         log.debug('Creating empty config %s', project_config)
         open(project_config, 'w').close()
 
+        log.debug('Creating empty providers %s', project_config)
+        open(providers_config, 'w').close()
+
         log.debug('Creating empty session %s', session_config)
         open(session_config, 'w').close()
 
-        log.debug('Creating empty salt master config %s', session_config)
+        log.debug('Creating empty salt master config %s', master_config)
         open(master_config, 'w').close()
 
-        log.debug('Creating empty profile %s', session_config)
+        log.debug('Creating empty profile %s', profile_config)
         open(profile_config, 'w').close()
+
+    if not os.path.isdir(states_dir):
+            log.debug('Creating directory %s', states_dir)
+            os.mkdir(states_dir)
 
     if not os.path.isdir(local_dir):
         log.debug('Creating directory %s', local_dir)
         os.mkdir(local_dir)
 
     if not os.path.isfile(local_config_path):
+        log.debug('Creating empty local config %s', local_config_path)
         write_file(local_config_path, local_data)
+
+    if not os.path.isfile(local_config_path):
+        log.debug('Creating empty local providers %s', local_providers_path)
+        open(local_providers_path, 'w').close()

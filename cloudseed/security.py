@@ -16,11 +16,15 @@ def write_key_for_config(key, provider, config):
 
     log.debug('Key filename: %s', filename)
 
-    path = '{0}/.cloudseed/{1}/{2}'.format(
+    keys_dir = '{0}/.cloudseed/{1}/keys'.format(
         os.path.expanduser('~'),
-        data['project'],
-        filename)
+        data['project'])
 
+    if not os.path.isdir(keys_dir):
+        log.debug('Creating directory %s', keys_dir)
+        os.mkdir(keys_dir)
+
+    path = os.path.join(keys_dir, filename)
     log.debug('Key path: %s', path)
 
     with open(path, 'w') as target:

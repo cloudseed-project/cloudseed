@@ -31,27 +31,27 @@ class EC2Provider(Loggable):
 
         with config_key_error():
             region = ec2.get_region(cfg_region,
-                aws_access_key_id=provider['key'],
-                aws_secret_access_key=provider['secret'])
+                aws_access_key_id=provider['id'],
+                aws_secret_access_key=provider['key'])
 
             self.conn = boto.connect_ec2(
-                aws_access_key_id=provider['key'],
-                aws_secret_access_key=provider['secret'],
+                aws_access_key_id=provider['id'],
+                aws_secret_access_key=provider['key'],
                 region=region)
 
     def ssh_identity(self):
-        return os.path.expanduser(self.provider['key_path'])
+        return os.path.expanduser(self.provider['private_key'])
 
     def deploy_config(self, context=None):
         data = self.provider.copy()
-        data['key_path'] = '/etc/salt/cloudseed.pem'
+        data['private_key'] = '/etc/salt/cloudseed.pem'
         return yaml.dump(data, default_flow_style=False)
 
     def deploy_profile(self, context=None):
         return yaml.dump(self.provider.profile, default_flow_style=False)
 
     def deploy_extras(self, context=None):
-        key_path = os.path.expanduser(self.provider['key_path'])
+        key_path = os.path.expanduser(self.provider['private_key'])
         with open(key_path) as f:
             key = f.read()
 
@@ -79,14 +79,14 @@ class EC2Provider(Loggable):
 
         data = self.provider
 
-        if 'key_name' not in data \
-        and 'key_path' not in data:
+        if 'keyname' not in data \
+        and 'private_key' not in data:
             self.log.debug('EC2 key settings not present')
             raise NeedsEc2Key
 
         with config_key_error():
-            ec2_key_name = data['key_name']
-            ec2_key_path = os.path.expanduser(data['key_path'])
+            ec2_key_name = data['keyname']
+            ec2_key_path = os.path.expanduser(data['private_key'])
 
         if not os.path.isfile(ec2_key_path):
             self.log.error('Unable to locate key at %s', ec2_key_path)
@@ -111,8 +111,8 @@ class EC2Provider(Loggable):
             provider=self.provider,
             config=config)
 
-        self.provider['key_name'] = name
-        self.provider['key_path'] = filename
+        self.provider['keyname'] = name
+        self.provider['private_key'] = filename
 
     def _ec2_key_exists(self, name):
         try:
@@ -206,7 +206,7 @@ class EC2Provider(Loggable):
         with profile_key_error():
             kwargs = {
             'image_id': profile['image'],
-            'key_name': self.provider['key_name'],
+            'key_name': self.provider['keyname'],
             'instance_type': profile['size'],
             'security_groups': security_groups,
             'user_data': None  # bootstrap_script(profile['script'], profile, self.provider)
@@ -233,13 +233,6 @@ class EC2Provider(Loggable):
 
         self.log.debug('Naming instance  %s', instance_name)
         self.log.debug('Instance available at %s', instance.public_dns_name)
-
-        # I don't like doing this, need to think of a better way to handle
-        # alternate providers
-        # self.provider.update_config({
-        #     'master': instance.public_dns_name.encode('utf-8'),
-        #     'provider': 'ec2',
-        #     })
 
         instance.add_tag('Name', instance_name)
         return instance.public_dns_name.encode('utf-8')
