@@ -14,7 +14,7 @@ class InvalidEnvironment(CloudseedError):
     '''Invalid Cloudseed environment'''
 
 
-class UnknownConfigProvider(CloudseedError):
+class UnknownConfigProvider(KeyError, CloudseedError):
     '''Unable to load requester provider'''
 
 

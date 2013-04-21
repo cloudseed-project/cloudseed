@@ -31,6 +31,8 @@ common commands:
     status                    current cloudseed status
     env <environment>         charge cloudseed environment to specified <environment>
     destroy <environment>     destroys all boxes associated with this environment
+    deploy <state>            deploy a state to a machine
+    sync                      sync states and modules to the currently bootstrapped environment
     '''
     args = docopt(
         cloudseed_main.__doc__,
@@ -73,6 +75,10 @@ common commands:
     elif command == 'destroy':
         from cloudseed.commands import destroy
         destroy.run(config, argv)
+
+    elif command == 'deploy':
+        from cloudseed.commands import deploy
+        deploy.run(config, argv)
 
     elif args['<command>'] in ('help', None):
         exit(call(['cloudseed', '--help']))

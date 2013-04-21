@@ -26,21 +26,46 @@ class Config(Loggable):
         # TODO: EXPOSE MASTER AND MINION CONFIG PATHS SOME HOW
         # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
 
-        if provider:
-            self.provider = provider(config=self)
-        elif resource.session.get('environment'):
-            with config_key_error():
-                provider_name = resource.data['provider']
-            try:
-                em = driver.DriverManager(
-                    'com.cloudseed.providers',
-                    provider_name,
-                    invoke_on_load=True,
-                    invoke_kwds={'config': self})
-                self.provider = em.driver
-            except RuntimeError:
-                self.log.error('Unknown Config Provider %s', provider_name)
-                raise UnknownConfigProvider
+        # if provider:
+        #     self.provider = provider(config=self)
+        # elif resource.session.get('environment'):
+        #     with config_key_error():
+        #         provider_name = resource.data['provider']
+        #     try:
+        #         em = driver.DriverManager(
+        #             'com.cloudseed.providers',
+        #             provider_name,
+        #             invoke_on_load=True,
+        #             invoke_kwds={'config': self})
+        #         self.provider = em.driver
+        #     except RuntimeError:
+        #         self.log.error('Unknown Config Provider %s', provider_name)
+        #         raise UnknownConfigProvider
+
+    def provider_for_profile(self, profile):
+        provider_name = profile['provider']
+
+        try:
+            provider_config = self.providers[provider_name]
+        except KeyError:
+            self.log.error('Unable to locate provider \'%s\'', provider_name)
+            raise UnknownConfigProvider(provider_name)
+
+        return self.provider_for_config(provider_config)
+
+    def provider_for_config(self, config):
+        name = config['provider']
+
+        try:
+            em = driver.DriverManager(
+                'com.cloudseed.providers',
+                name,
+                invoke_on_load=True,
+                invoke_kwds={'provider': config})
+            return em.driver
+        except RuntimeError:
+            self.log.error('Unknown Config Provider %s', name)
+            raise UnknownConfigProvider(name)
 
     @property
     def data(self):
@@ -51,8 +76,16 @@ class Config(Loggable):
         return self.resource.session
 
     @property
+    def providers(self):
+        return self.resource.providers
+
+    @property
     def profile(self):
         return self.resource.profile
+
+    def update_providers(self, data):
+        self.log.debug('Updating providers with %s', data)
+        self.resource.update_providers(data)
 
     def update_config(self, data):
         self.log.debug('Updating config with %s', data)
@@ -68,12 +101,13 @@ class Config(Loggable):
 
 
 class MemoryConfig(Loggable):
-    def __init__(self, data, session=None, profile=None):
+    def __init__(self, data, session=None, profile=None, providers=None):
 
         with config_key_error():
             data['project']
 
         self.data = data
+        self.providers = {} if providers is None else providers
         self.session = {} if session is None else session
         self.profile = {} if profile is None else profile
 
@@ -94,7 +128,8 @@ class FilesystemConfig(Loggable, Filesystem):
         project_config=None,
         global_config=None,
         session_config=None,
-        profile_config=None):
+        profile_config=None,
+        provider_config=None):
 
         self.local_config = local_config
 
@@ -110,6 +145,7 @@ class FilesystemConfig(Loggable, Filesystem):
             self.profile = {}
             return
 
+        self.providers = self.load_providers(provider_config)
         self.session = self.load_session(session_config)
 
         env_key = self.session['environment'] \
@@ -117,6 +153,19 @@ class FilesystemConfig(Loggable, Filesystem):
         else profile_config
 
         self.profile = self.load_env_profile(env_key)
+
+    def update_providers(self, data):
+        path = os.path.join(
+            self.local_path(),
+            'providers')
+
+        self.log.debug('Updating providers %s', path)
+
+        providers = self.load_file(path)
+        providers.update(data)
+
+        self.write_file(path, providers)
+        self.providers.update(data)
 
     def update_config(self, data):
         path = os.path.join(
@@ -184,6 +233,26 @@ class FilesystemConfig(Loggable, Filesystem):
             'profile')
 
         return [project_env, local_env]
+
+    def load_providers(self, provider_config=None):
+        self.log.debug('Loading provider data')
+        providers = {}
+
+        if provider_config:
+            providers = self.load_file(provider_config)
+        else:
+            with config_key_error():
+                project = self.data['project']
+
+                project_path = self.project_path(project)
+                project_providers = os.path.join(project_path, 'providers')
+                providers = self.load_file(project_providers)
+
+            local_path = self.local_path()
+            local_providers = os.path.join(local_path, 'providers')
+            providers.update(self.load_file(local_providers))
+
+        return providers
 
     def load_session(self, session_config=None):
         self.log.debug('Loading session data')

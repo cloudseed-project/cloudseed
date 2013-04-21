@@ -40,6 +40,7 @@ def init_cloudseed_environment(config, args):
     write_file = Filesystem.write_file
 
     env_dir = Filesystem.local_env_path(env_name)
+    states_dir = os.path.join(env_dir, 'states')
     profile_path = os.path.join(env_dir, 'profile')
     master_path = os.path.join(env_dir, 'master')
     config_path = os.path.join(env_dir, 'config')
@@ -68,8 +69,12 @@ def init_cloudseed_environment(config, args):
         ],
 
         'gitfs_remotes': [
-          'git://github.com/cloudseed-project/cloudseed-states.git'
+            'git://github.com/cloudseed-project/cloudseed-states.git'
         ],
+
+        'file_roots': {
+            'base': ['/srv/salt']
+        }
     }
 
     # config = {
@@ -79,6 +84,10 @@ def init_cloudseed_environment(config, args):
     if not os.path.isdir(env_dir):
         log.debug('Creating directory %s', env_dir)
         os.mkdir(env_dir)
+
+    if not os.path.isdir(states_dir):
+        log.debug('Creating directory %s', states_dir)
+        os.mkdir(states_dir)
 
     if os.path.exists(profile_path):
         log.debug('%s already exists, will not overwrite', profile_path)
@@ -146,6 +155,10 @@ def init_cloudseed_project(config, args):
         session_config = os.path.join(project_dir, 'session')
         master_config = os.path.join(project_dir, 'master')
         profile_config = os.path.join(project_dir, 'profile')
+        states_dir = os.path.join(project_dir, 'states')
+
+        if not os.path.isdir(states_dir):
+            os.mkdir(states_dir)
 
         log.debug('Creating empty config %s', project_config)
         open(project_config, 'w').close()

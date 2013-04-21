@@ -11,6 +11,7 @@ options:
 import sys
 import logging
 from docopt import docopt
+from cloudseed.exceptions import UnknownConfigProvider
 
 log = logging.getLogger(__name__)
 
@@ -31,8 +32,21 @@ def run(config, argv):
             .format(current_env))
 
         if answer.lower() in ('y', 'yes', 'true', 't', '1'):
+
+            # for now we assume that all instances will be
+            # on the same provider as the master
+            profile = config.profile['master']
+
+            try:
+                provider = config.provider_for_profile(profile)
+            except UnknownConfigProvider as e:
+                sys.stdout.write(
+                    'Unknown config provider \'{0}\', unable to continue.\n'\
+                    .format(e.message))
+                return
+
             sys.stdout.write('Destroying environment \'{0}\'\n'.format(current_env))
-            config.provider.kill_all_instances()
+            provider.kill_all_instances(config)
 
 
 

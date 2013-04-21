@@ -6,7 +6,7 @@ import boto
 from boto import ec2
 from boto.exception import EC2ResponseError
 from cloudseed.utils.deploy import bootstrap_script
-from cloudseed.security import add_key_for_config
+from cloudseed.security import write_key_for_config
 from cloudseed.utils.exceptions import config_key_error, profile_key_error
 from cloudseed.exceptions import (
     CloudseedError, KeyAndPairAlreadyExist, KeyNotFound
@@ -20,66 +20,73 @@ class NeedsEc2Key(CloudseedError):
 
 class EC2Provider(Loggable):
 
-    def __init__(self, config):
+    def __init__(self, provider):
         self.pem_file = None
-        self.config = config
-        self._connect()
+        self.provider = provider
+        self._connect(provider)
 
-    def _connect(self):
+    def _connect(self, provider):
 
-        cfg_region = self.config.data.get('ec2.region', 'us-east-1')
+        cfg_region = provider.get('region', 'us-east-1')
 
         with config_key_error():
             region = ec2.get_region(cfg_region,
-                aws_access_key_id=self.config.data['ec2.key'],
-                aws_secret_access_key=self.config.data['ec2.secret'])
+                aws_access_key_id=provider['key'],
+                aws_secret_access_key=provider['secret'])
 
             self.conn = boto.connect_ec2(
-                aws_access_key_id=self.config.data['ec2.key'],
-                aws_secret_access_key=self.config.data['ec2.secret'],
+                aws_access_key_id=provider['key'],
+                aws_secret_access_key=provider['secret'],
                 region=region)
 
     def ssh_identity(self):
-        return os.path.expanduser(self.config.data['ec2.key_path'])
+        return os.path.expanduser(self.provider['key_path'])
 
     def deploy_config(self, context=None):
-        data = self.config.data.copy()
-        data['ec2.key_path'] = '/etc/salt/cloudseed.pem'
+        data = self.provider.copy()
+        data['key_path'] = '/etc/salt/cloudseed.pem'
         return yaml.dump(data, default_flow_style=False)
 
     def deploy_profile(self, context=None):
-        return yaml.dump(self.config.profile, default_flow_style=False)
+        return yaml.dump(self.provider.profile, default_flow_style=False)
 
     def deploy_extras(self, context=None):
-        key_path = os.path.expanduser(self.config.data['ec2.key_path'])
+        key_path = os.path.expanduser(self.provider['key_path'])
         with open(key_path) as f:
             key = f.read()
 
         return ['echo "{0}" > /etc/salt/cloudseed.pem'.format(key)]
 
-    def bootstrap(self):
+    def deploy(self, states, machine):
+        self.log.debug('States for deploy: %s', states)
+
+    def bootstrap(self, profile, config):
         self.log.debug('Creating bootstrap node')
         try:
             self.verify_keys()
         except NeedsEc2Key:
             self.log.debug('Createing EC2 key')
-            self.create_key_pair()
+            self.create_key_pair(config)
 
-        groups = self._initialize_security_groups()
-        self._build_master(security_groups=groups)
+        groups = self._initialize_security_groups(config)
+
+        return self._build_master(
+            name=config.data['project'],
+            profile=profile,
+            security_groups=groups)
 
     def verify_keys(self):
 
-        data = self.config.data
+        data = self.provider
 
-        if 'ec2.key_name' not in data \
-        and 'ec2.key_path' not in data:
+        if 'key_name' not in data \
+        and 'key_path' not in data:
             self.log.debug('EC2 key settings not present')
             raise NeedsEc2Key
 
         with config_key_error():
-            ec2_key_name = self.config.data['ec2.key_name']
-            ec2_key_path = os.path.expanduser(self.config.data['ec2.key_path'])
+            ec2_key_name = data['key_name']
+            ec2_key_path = os.path.expanduser(data['key_path'])
 
         if not os.path.isfile(ec2_key_path):
             self.log.error('Unable to locate key at %s', ec2_key_path)
@@ -89,60 +96,23 @@ class EC2Provider(Loggable):
             self.log.error('Invalid EC2 key name %s', ec2_key_name)
             raise KeyNotFound
 
-    def create_key_pair(self):
+    def create_key_pair(self, config):
         name = '{0}_{1}_{2}'.format(
-                self.config.data.get('project'),
-                self.config.data.get('session'),
+                config.data.get('project'),
+                config.session.get('environment'),
                 'ec2'
             )
-
-        # self._delete_key_with_name(name)
-
-        # ec2_key_exists = self._ec2_key_exists(name)
-        # location = '{0}/.cloudseed/{1}/{2}'.format(
-        #             os.path.expanduser('~'),
-        #             self.config.data.get('project'),
-        #             name
-        #         )
-        # pem_file = '{0}/{1}'.format(location, name)
-
-        # if os.path.exists(pem_file) and ec2_key_exists:
-        #     self.log.debug('[EC2] already created a key, all is well')
-        #     raise KeyAndPairAlreadyExist()
-        #     return
-        # elif not os.path.exists(pem_file) and ec2_key_exists:
-        #     self.log.debug('[EC2] key is created, but no pem file...get it from someone who made it')
-        #     self.log.debug('[EC2] Alternatively, you can delete the key, and remake it')
-        #     #self._delete_key_with_name(name)
-        #     raise KeyNotFound()
-        #     return
-
-        # self._delete_key_with_name(name)
-
-        # ec2_key_exists = self._ec2_key_exists(name)
-        # location = '{0}/.cloudseed/{1}'.format(
-        #             os.path.expanduser('~'),
-        #             self.config.data.get('project')
-        #         )
-        # pem_file = '{0}/{1}'.format(location, name)
-
-        # if os.path.exists(pem_file) and ec2_key_exists:
-        #     self.log.debug('[EC2] already created a key, all is well')
-        #     raise KeyAndPairAlreadyExist()
-        #     return
-        # elif not os.path.exists(pem_file) and ec2_key_exists:
-        #     self.log.debug('[EC2] key is created, but no pem file...get it from someone who made it')
-        #     self.log.debug('[EC2] Alternatively, you can delete the key, and remake it')
-        #     #self._delete_key_with_name(name)
-        #     raise KeyNotFound()
-        #     return
 
         self.log.debug('[EC2] created key_pair with name: %s', name)
         key_pair = self.conn.create_key_pair(name)
 
-        filename = add_key_for_config(key_pair.material, self.config)
-        self.config.update_config({'ec2.key_name': name,
-                                    'ec2.key_path': filename})
+        filename = write_key_for_config(
+            key_pair.material,
+            provider=self.provider,
+            config=config)
+
+        self.provider['key_name'] = name
+        self.provider['key_path'] = filename
 
     def _ec2_key_exists(self, name):
         try:
@@ -163,9 +133,9 @@ class EC2Provider(Loggable):
             if key.name == name:
                 key.delete()
 
-    def _base_security_groups(self):
-        project = self.config.data['project'].lower()
-        env = self.config.session['environment']
+    def _base_security_groups(self, config):
+        project = config.data['project'].lower()
+        env = config.session['environment']
 
         return {
         'app': ('cloudseed-{0}-{1}'.format(project, env),
@@ -178,8 +148,8 @@ class EC2Provider(Loggable):
             'Cloudseed group for {0} {1} machine 0'.format(project, env)),
         }
 
-    def _initialize_security_groups(self):
-        groups = self._base_security_groups()
+    def _initialize_security_groups(self, config):
+        groups = self._base_security_groups(config)
 
         conn = self.conn
 
@@ -228,10 +198,7 @@ class EC2Provider(Loggable):
 
         return [x[0] for x in base_groups]
 
-    def _build_master(self, security_groups):
-
-        with profile_key_error():
-            profile = self.config.profile['master']
+    def _build_master(self, name, profile, security_groups):
 
         {'image': 'ami-bb709dd2',
         'size': 't1.micro'}
@@ -239,17 +206,17 @@ class EC2Provider(Loggable):
         with profile_key_error():
             kwargs = {
             'image_id': profile['image'],
-            'key_name': self.config.data['ec2.key_name'],
+            'key_name': self.provider['key_name'],
             'instance_type': profile['size'],
             'security_groups': security_groups,
-            'user_data': bootstrap_script(profile['script'], profile, self.config)
+            'user_data': None  # bootstrap_script(profile['script'], profile, self.provider)
             }
 
         self.log.debug('Creating instance with %s', kwargs)
         reservation = self.conn.run_instances(**kwargs)
 
         instance = reservation.instances[0]
-        instance_name = 'cloudseed-{0}-0'.format(self.config.data['project'].lower())
+        instance_name = 'cloudseed-{0}-0'.format(name.lower())
 
         self.log.debug('Waiting for instance to become available, this can take a minute or so.')
 
@@ -266,15 +233,22 @@ class EC2Provider(Loggable):
 
         self.log.debug('Naming instance  %s', instance_name)
         self.log.debug('Instance available at %s', instance.public_dns_name)
-        self.config.update_config({'master': instance.public_dns_name.encode('utf-8')})
+
+        # I don't like doing this, need to think of a better way to handle
+        # alternate providers
+        # self.provider.update_config({
+        #     'master': instance.public_dns_name.encode('utf-8'),
+        #     'provider': 'ec2',
+        #     })
 
         instance.add_tag('Name', instance_name)
+        return instance.public_dns_name.encode('utf-8')
 
-    def kill_all_instances(self):
+    def kill_all_instances(self, config):
 
         name = 'cloudseed-{0}-{1}'.format(
-            self.config.data['project'],
-            self.config.session['environment'])
+            config.data['project'],
+            config.session['environment'])
 
         filters = {'instance-state-name': 'running', 'group-name': name}
         all_instances = self.conn.get_all_instances(filters=filters)

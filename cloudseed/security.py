@@ -4,14 +4,15 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def add_key_for_config(key, config):
+def write_key_for_config(key, provider, config):
     log.debug('Saving key for config')
     data = config.data
+    session = config.session
 
     filename = '{0}_{1}_{2}'.format(
         data['project'],
-        data['session'],
-        data['provider'])
+        session['environment'],
+        provider['provider'])
 
     log.debug('Key filename: %s', filename)
 
