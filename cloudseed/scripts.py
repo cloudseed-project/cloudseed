@@ -80,6 +80,10 @@ common commands:
         from cloudseed.commands import deploy
         deploy.run(config, argv)
 
+    elif command == 'sync':
+        from cloudseed.commands import sync
+        sync.run(config, argv)
+
     elif args['<command>'] in ('help', None):
         exit(call(['cloudseed', '--help']))
 
