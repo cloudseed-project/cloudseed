@@ -28,11 +28,7 @@ def __render_script(path, **kwargs):
             return fp_.read()
 
 
-def bootstrap_script(script, profile, config):
-
-    frozen_config = config.provider.deploy_config('master')
-    frozen_profile = config.provider.deploy_profile('master')
-    extras = config.provider.deploy_extras('master')
+def bootstrap_script(script, data, config):
 
     project = config.data['project']
     env = config.session['environment']
@@ -46,9 +42,9 @@ def bootstrap_script(script, profile, config):
         'master'
         )
 
-    data = Filesystem.load_file(master_project_path, master_env_path)
+    merged_master = Filesystem.load_file(master_project_path, master_env_path)
 
-    master = Filesystem.encode(data)
+    master = Filesystem.encode(merged_master)
     minion = Filesystem.encode(
         {'id': 'master',
         'master': 'localhost'})
@@ -57,9 +53,9 @@ def bootstrap_script(script, profile, config):
         # The user provided an absolute path to the deploy script, let's use it
         return __render_script(
             script,
-            profile=frozen_profile,
-            config=frozen_config,
-            extras=extras,
+            profiles=data.get('profiles'),
+            provider=data.get('provider'),
+            extras=data.get('extras'),
             master=master,
             minion=minion)
 
@@ -68,9 +64,9 @@ def bootstrap_script(script, profile, config):
         # extension was provided. Let's use it anyway.
         return __render_script(
             '{0}.sh'.format(script),
-            profile=frozen_profile,
-            config=frozen_config,
-            extras=extras,
+            profiles=data.get('profiles'),
+            provider=data.get('provider'),
+            extras=data.get('extras'),
             master=master,
             minion=minion)
 
@@ -78,18 +74,18 @@ def bootstrap_script(script, profile, config):
         if os.path.isfile(os.path.join(search_path, script)):
             return __render_script(
                 os.path.join(search_path, script),
-                profile=frozen_profile,
-                config=frozen_config,
-                extras=extras,
+                profiles=data.get('profiles'),
+                provider=data.get('provider'),
+                extras=data.get('extras'),
                 master=master,
                 minion=minion)
 
         if os.path.isfile(os.path.join(search_path, '{0}.sh'.format(script))):
             return __render_script(
                 os.path.join(search_path, '{0}.sh'.format(script)),
-                profile=frozen_profile,
-                config=frozen_config,
-                extras=extras,
+                profiles=data.get('profiles'),
+                provider=data.get('provider'),
+                extras=data.get('extras'),
                 master=master,
                 minion=minion)
 

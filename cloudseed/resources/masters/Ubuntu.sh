@@ -2,8 +2,8 @@
 mkdir -p /etc/salt
 echo "{{ master }}" > /etc/salt/master
 echo "{{ minion }}" > /etc/salt/minion
-echo "{{ config }}" > /etc/salt/cloudseed; chmod 600 /etc/salt/cloudseed
-echo "{{ profile }}" > /etc/salt/cloudseed.profile; chmod 600 /etc/salt/cloudseed.profile
+echo "{{ provider }}" > /etc/salt/cloudseed; chmod 600 /etc/salt/cloudseed
+echo "{{ profiles }}" > /etc/salt/cloudseed.profile; chmod 600 /etc/salt/cloudseed.profile
 
 {% for item in  extras %}
 {{ item }}

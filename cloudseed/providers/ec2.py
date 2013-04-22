@@ -42,16 +42,9 @@ class EC2Provider(Loggable):
     def ssh_identity(self):
         return os.path.expanduser(self.provider['private_key'])
 
-    def deploy_config(self, context=None):
-        data = self.provider.copy()
-        data['private_key'] = '/etc/salt/cloudseed.pem'
-        return yaml.dump(data, default_flow_style=False)
-
-    def deploy_profile(self, context=None):
-        return yaml.dump(self.provider.profile, default_flow_style=False)
-
     def deploy_extras(self, context=None):
         key_path = os.path.expanduser(self.provider['private_key'])
+
         with open(key_path) as f:
             key = f.read()
 
@@ -71,7 +64,7 @@ class EC2Provider(Loggable):
         groups = self._initialize_security_groups(config)
 
         return self._build_master(
-            name=config.data['project'],
+            config=config,
             profile=profile,
             security_groups=groups)
 
@@ -198,25 +191,48 @@ class EC2Provider(Loggable):
 
         return [x[0] for x in base_groups]
 
-    def _build_master(self, name, profile, security_groups):
+    def _master_user_data(self, config):
+        data = {}
 
-        {'image': 'ami-bb709dd2',
-        'size': 't1.micro'}
+        key_path = os.path.expanduser(self.provider['private_key'])
+
+        with open(key_path) as f:
+            key = f.read()
+
+        extras = ['echo "{0}" > /etc/salt/cloudseed.pem'.format(key)]
+
+        provider = self.provider.copy()
+        provider['private_key'] = '/etc/salt/cloudseed.pem'
+
+        data['extras'] = extras
+        data['provider'] = yaml.dump(provider, default_flow_style=False)
+        data['profiles'] = yaml.dump(config.profile, default_flow_style=False)
+
+        return data
+
+    def _build_master(self, config, profile, security_groups):
+
+        data = self._master_user_data(config)
 
         with profile_key_error():
+
             kwargs = {
             'image_id': profile['image'],
             'key_name': self.provider['keyname'],
             'instance_type': profile['size'],
             'security_groups': security_groups,
-            'user_data': None  # bootstrap_script(profile['script'], profile, self.provider)
+            'user_data': bootstrap_script(
+                profile['script'],
+                data=data,
+                config=config)
             }
 
         self.log.debug('Creating instance with %s', kwargs)
         reservation = self.conn.run_instances(**kwargs)
 
         instance = reservation.instances[0]
-        instance_name = 'cloudseed-{0}-0'.format(name.lower())
+        instance_name = 'cloudseed-{0}-0'.format(
+            config.data['project'].lower())
 
         self.log.debug('Waiting for instance to become available, this can take a minute or so.')
 
