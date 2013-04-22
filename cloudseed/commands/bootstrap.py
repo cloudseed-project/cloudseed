@@ -15,6 +15,14 @@ from cloudseed.exceptions import UnknownConfigProvider
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
 
+    # TODO: use a SYM LINK for the environment:
+    # ./cloudseed/current -> ./cloudseed/prod
+    # then read the basename off the path os.readlink
+    # activate_environment should create a symlink to ./cloudseed/current
+    # that way you can swithc config options with something like
+    # vagrant and you won't need the session anymore as current
+    # will represnet it.
+
     env = args['<environment>']
     current_env = config.session.get('environment', None)
 
