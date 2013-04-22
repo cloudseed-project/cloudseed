@@ -79,6 +79,7 @@ in your provider for this master')
     if not current_env:
         sys.stdout.write('No environment available.\n')
         sys.stdout.write('Have you run \'cloudseed init env <environment>\'?\n')
+        return
 
     sys.stdout.write('Syncing states for \'{0}\'\n'.format(current_env))
 
@@ -89,6 +90,7 @@ in your provider for this master')
         sys.stdout.write('States dir not found at \'%s\'\n', states_path)
         return
 
+    master_config = salt_master_config(config)
     sys.stdout.write('Archiving contents at \'{0}\'\n'.format(states_path))
 
     tmp = tempfile.NamedTemporaryFile(delete=False)
@@ -98,8 +100,8 @@ in your provider for this master')
     archive.close()
 
     tmp.close()
+    log.debug('Archive created at %s', tmp.name)
 
-    master_config = salt_master_config(config)
     try:
         remote_path = master_config['file_roots']['base'][0]
     except KeyError:
