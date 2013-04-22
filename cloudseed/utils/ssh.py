@@ -1,8 +1,23 @@
+import os
 import paramiko
 
 
 def run(client, command):
     client.exec_command(command)
+
+
+def connect(hostname, username, identity):
+
+    if os.path.isabs(identity):
+        return client(
+            hostname=hostname,
+            username=username,
+            identity=identity)
+    else:
+        return client(
+            hostname=hostname,
+            username=username,
+            password=identity)
 
 
 def client(hostname, identity=None, username=None, password=None, port=22):

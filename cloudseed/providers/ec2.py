@@ -40,7 +40,10 @@ class EC2Provider(Loggable):
                 region=region)
 
     def ssh_identity(self):
-        return os.path.expanduser(self.provider['private_key'])
+        try:
+            return os.path.expanduser(self.provider['private_key'])
+        except KeyError:
+            return None
 
     def deploy_extras(self, context=None):
         key_path = os.path.expanduser(self.provider['private_key'])
