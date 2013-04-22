@@ -20,6 +20,16 @@ log = logging.getLogger(__name__)
 
 def run(config, argv):
 
+    current_env = config.session.get('environment', None)
+
+    if not current_env:
+        sys.stdout.write('No environment available.\n')
+        sys.stdout.write('Have you run \'cloudseed init env <environment>\'?\n')
+        return
+    else:
+        sys.stdout.write('Connecting to environment \'{0}\'\n'\
+            .format(current_env))
+
     profile = config.profile['master']
 
     try:
@@ -45,6 +55,9 @@ def run(config, argv):
 
     log.debug('Opening SSH to %s@%s using identity %s',
         username, hostname, identity)
+
+    sys.stdout.write('Hostname is \'{0}\'\n'\
+            .format(hostname))
 
     call('ssh {0}@{1} -i {2} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes' \
         .format(
