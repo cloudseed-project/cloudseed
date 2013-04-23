@@ -186,6 +186,6 @@ def init_cloudseed_project(config, args):
         log.debug('Creating empty local config %s', local_config_path)
         write_file(local_config_path, local_data)
 
-    if not os.path.isfile(local_config_path):
+    if not os.path.isfile(local_providers_path):
         log.debug('Creating empty local providers %s', local_providers_path)
         open(local_providers_path, 'w').close()
