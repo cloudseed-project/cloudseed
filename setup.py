@@ -22,7 +22,11 @@ tests_require = ['nose']
 
 
 packages = [
-    'cloudseed'
+    'cloudseed',
+    'cloudseed.commands',
+    'cloudseed.providers',
+    'cloudseed.resources',
+    'cloudseed.utils'
 ]
 
 setup(
