@@ -23,15 +23,15 @@ def run(config, argv):
     current_env = config.environment
 
     if env:
-        if env != current_env:
-            config.activate_environment(env)
-            current_env = env
 
         answer = raw_input(
             'Are you sure you want to destroy \'{0}\' [y/N] '\
             .format(env))
 
         if answer.lower() in ('y', 'yes', 'true', 't', '1'):
+
+            if env != current_env:
+                config.activate_environment(env)
 
             # for now we assume that all instances will be
             # on the same provider as the master
@@ -48,5 +48,5 @@ def run(config, argv):
             sys.stdout.write('Destroying environment \'{0}\'\n'.format(env))
             provider.kill_all_instances(config)
 
-        if current_env:
-            config.activate_environment(current_env)
+            if current_env != env:
+                config.activate_environment(current_env)

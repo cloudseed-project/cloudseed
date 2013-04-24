@@ -211,6 +211,10 @@ class FilesystemConfig(Loggable, Filesystem):
         self.log.debug('Creating symlink to: %s', next)
         os.symlink(next, current)
 
+        self.data = self.load_config()
+        self.providers = self.load_providers()
+        self.profile = self.load_profile()
+
     def session_paths(self, project):
         path = os.path.join(
             self.project_path(project),
@@ -303,7 +307,7 @@ class FilesystemConfig(Loggable, Filesystem):
 
             return env
 
-    def load_config(self, local_config, project_config=None, global_config=None):
+    def load_config(self, local_config=None, project_config=None, global_config=None):
         self.log.debug('Loading configuration')
         local_data = {}
         env_config = None
