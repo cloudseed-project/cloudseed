@@ -2,6 +2,7 @@
 usage: cloudseed status
 '''
 import sys
+import os
 from docopt import docopt
 
 
@@ -12,7 +13,7 @@ def write(value):
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
 
-    env = config.session['environment']
+    env = config.environment
 
     write('Current Environment: {0}'.format(env))
     write('Master available at: {0}'\

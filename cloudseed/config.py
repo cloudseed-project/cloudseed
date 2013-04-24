@@ -26,22 +26,6 @@ class Config(Loggable):
         # TODO: EXPOSE MASTER AND MINION CONFIG PATHS SOME HOW
         # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
 
-        # if provider:
-        #     self.provider = provider(config=self)
-        # elif resource.session.get('environment'):
-        #     with config_key_error():
-        #         provider_name = resource.data['provider']
-        #     try:
-        #         em = driver.DriverManager(
-        #             'com.cloudseed.providers',
-        #             provider_name,
-        #             invoke_on_load=True,
-        #             invoke_kwds={'config': self})
-        #         self.provider = em.driver
-        #     except RuntimeError:
-        #         self.log.error('Unknown Config Provider %s', provider_name)
-        #         raise UnknownConfigProvider
-
     def provider_for_profile(self, profile):
         provider_name = profile['provider']
 
@@ -71,9 +55,13 @@ class Config(Loggable):
     def data(self):
         return self.resource.data
 
+    # @property
+    # def session(self):
+    #     return self.resource.session
+
     @property
-    def session(self):
-        return self.resource.session
+    def environment(self):
+        return self.resource.environment()
 
     @property
     def providers(self):
@@ -146,13 +134,15 @@ class FilesystemConfig(Loggable, Filesystem):
             return
 
         self.providers = self.load_providers(provider_config)
-        self.session = self.load_session(session_config)
+        self.profile = self.load_profile(profile_config)
 
-        env_key = self.session['environment'] \
-        if not profile_config \
-        else profile_config
+        # self.session = self.load_session(session_config)
 
-        self.profile = self.load_env_profile(env_key)
+        # env_key = self.session['environment'] \
+        # if not profile_config \
+        # else profile_config
+
+        #self.profile = self.load_env_profile(env_key)
 
     def update_providers(self, data):
         path = os.path.join(
@@ -169,7 +159,7 @@ class FilesystemConfig(Loggable, Filesystem):
 
     def update_config(self, data):
         path = os.path.join(
-            self.local_env_path(self.session['environment']),
+            self.current_env(),
             'config')
 
         self.log.debug('Updating config %s', path)
@@ -193,24 +183,33 @@ class FilesystemConfig(Loggable, Filesystem):
         self.write_file(path, session)
         self.session.update(data)
 
+    def environment(self):
+        local_path = self.local_path()
+        current = os.path.join(local_path, 'current')
+
+        if os.path.exists(current):
+            env_path = os.readlink(current)
+            return os.path.basename(env_path)
+
     def activate_environment(self, value):
-        env_key = self.session['environment']
+
+        local_path = self.local_path()
+
+        current = os.path.join(local_path, 'current')
+        next = os.path.join(local_path, value)
+
+        env_key = self.environment()
 
         if value == env_key:
             self.log.debug('Current environment is already active: %s', value)
             return
 
-        self.profile = self.load_env_profile(value)
+        if os.path.islink(current):
+            self.log.debug('Removing old symlink to: %s', os.readlink(current))
+            os.unlink(current)
 
-        self.log.debug('Updating session profile to: %s', value)
-        self.session['environment'] = value
-
-        session_path = self.session_paths(
-            self.data['project'])[0]
-
-        self.log.debug('Writing active profile to session %s', session_path)
-
-        self.write_file(session_path, self.session)
+        self.log.debug('Creating symlink to: %s', next)
+        os.symlink(next, current)
 
     def session_paths(self, project):
         path = os.path.join(
@@ -219,17 +218,14 @@ class FilesystemConfig(Loggable, Filesystem):
 
         return [path]
 
-    def env_profile_paths(self, project, value):
-
-        if not value:
-            return []
+    def env_profile_paths(self, project):
 
         project_env = os.path.join(
             self.project_path(project),
             'profile')
 
         local_env = os.path.join(
-            self.local_env_path(value),
+            self.current_env(),
             'profile')
 
         return [project_env, local_env]
@@ -254,33 +250,34 @@ class FilesystemConfig(Loggable, Filesystem):
 
         return providers
 
-    def load_session(self, session_config=None):
-        self.log.debug('Loading session data')
-        session = {}
+    # def load_session(self, session_config=None):
+    #     self.log.debug('Loading session data')
+    #     session = {}
 
-        if session_config:
-            session = self.load_file(session_config)
-        else:
-            with config_key_error():
-                project = self.data['project']
+    #     if session_config:
+    #         session = self.load_file(session_config)
+    #     else:
+    #         with config_key_error():
+    #             project = self.data['project']
 
-                session_paths = self.session_paths(project)
-                session = self.load_file(*session_paths)
+    #             session_paths = self.session_paths(project)
+    #             session = self.load_file(*session_paths)
 
-        try:
-            env_path = self.local_env_path(session['environment'])
-            env_config = os.path.join(env_path, 'config')
-            self.data.update(self.load_file(env_config))
-        except KeyError:
-            pass
+    #     try:
+    #         env_path = self.local_env_path(session['environment'])
+    #         env_config = os.path.join(env_path, 'config')
+    #         self.data.update(self.load_file(env_config))
+    #     except KeyError:
+    #         pass
 
-        session.setdefault('environment', None)
-        return session
+    #     session.setdefault('environment', None)
+    #     return session
 
-    def load_env_profile(self, value):
+    # def load_env_profile(self):
+    def load_profile(self, profile_config=None):
 
-        if not value:
-            self.log.debug('No environment currently set')
+        if not self.environment() and not profile_config:
+            self.log.debug('No environment or profile currently provided')
             return {}
 
         # This is really dangerous, we are not checking
@@ -290,17 +287,14 @@ class FilesystemConfig(Loggable, Filesystem):
         # Whatever the user executing this script has read access
         # to is fair game.
 
-        if os.path.isabs(value):
-            self.log.debug('Loading environment data for %s', value)
-            env_key = os.path.basename(value)
-            self.session['environment'] = env_key
-            return self.load_file(value)
+        if profile_config and os.path.isabs(profile_config):
+            self.log.debug('Loading profile data for %s', profile_config)
+            return self.load_file(profile_config)
         else:
-            self.log.debug('Loading environment profile for %s', value)
             env_paths = self.env_profile_paths(
-                self.data['project'],
-                value)
+                self.data['project'])
 
+            self.log.debug('Loading profiles %s', env_paths)
             env = self.load_file(*env_paths)
 
             if not env:
@@ -312,12 +306,14 @@ class FilesystemConfig(Loggable, Filesystem):
     def load_config(self, local_config, project_config=None, global_config=None):
         self.log.debug('Loading configuration')
         local_data = {}
+        env_config = None
 
         if not local_config:
             local_config = os.path.join(self.local_path(), 'config')
+            env_config = os.path.join(self.current_env(), 'config')
 
         self.log.debug('Loading local config: %s', local_config)
-        local_data = self.load_file(local_config)
+        local_data = self.load_file(local_config, env_config)
 
         if not local_data:
             raise ConfigNotFound

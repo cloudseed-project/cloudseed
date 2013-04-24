@@ -24,7 +24,7 @@ def run(config, argv):
     # will represnet it.
 
     env = args['<environment>']
-    current_env = config.session.get('environment', None)
+    current_env = config.environment
 
     if env:
         if env != current_env:

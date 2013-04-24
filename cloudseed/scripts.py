@@ -15,7 +15,7 @@ usage:
             <command> [<args>...]
 
 options:
-  -c --config=<config>    config to use [default: ./.cloudseed/config]
+  -c --config=<config>    config to use
   -p --profile=<profile>  profile to use
   -h --help               show this screen
   --verbose               show debug output
@@ -45,12 +45,18 @@ common commands:
     initialize_logging(verbose=args['--verbose'])
 
     try:
-        profile = args['--profile'][0]
+        profile_config = args['--profile'][0]
     except IndexError:
-        profile = None
+        profile_config = None
 
-    config = Config(FilesystemConfig(local_config=args['--config'][0],
-        profile_config=profile))
+    try:
+        local_config = args['--config'][0]
+    except IndexError:
+        local_config = None
+
+    config = Config(FilesystemConfig(
+        local_config=local_config,
+        profile_config=profile_config))
 
     if command == 'init':
         from cloudseed.commands import initialize

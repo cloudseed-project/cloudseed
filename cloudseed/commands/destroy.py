@@ -20,7 +20,7 @@ def run(config, argv):
     args = docopt(__doc__, argv=argv)
     env = args['<environment>']
 
-    current_env = config.session.get('environment', None)
+    current_env = config.environment
 
     if env:
         if env != current_env:
@@ -29,7 +29,7 @@ def run(config, argv):
 
         answer = raw_input(
             'Are you sure you want to destroy \'{0}\' [y/N] '\
-            .format(current_env))
+            .format(env))
 
         if answer.lower() in ('y', 'yes', 'true', 't', '1'):
 
@@ -45,8 +45,8 @@ def run(config, argv):
                     .format(e.message))
                 return
 
-            sys.stdout.write('Destroying environment \'{0}\'\n'.format(current_env))
+            sys.stdout.write('Destroying environment \'{0}\'\n'.format(env))
             provider.kill_all_instances(config)
 
-
-
+        if current_env:
+            config.activate_environment(current_env)

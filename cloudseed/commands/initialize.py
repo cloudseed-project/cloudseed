@@ -153,7 +153,7 @@ def init_cloudseed_project(config, args):
 
         # make empty project level config
         project_config = os.path.join(project_dir, 'config')
-        session_config = os.path.join(project_dir, 'session')
+        # session_config = os.path.join(project_dir, 'session')
         master_config = os.path.join(project_dir, 'master')
         profile_config = os.path.join(project_dir, 'profile')
         providers_config = os.path.join(project_dir, 'providers')
@@ -165,8 +165,8 @@ def init_cloudseed_project(config, args):
         log.debug('Creating empty providers %s', project_config)
         open(providers_config, 'w').close()
 
-        log.debug('Creating empty session %s', session_config)
-        open(session_config, 'w').close()
+        # log.debug('Creating empty session %s', session_config)
+        # open(session_config, 'w').close()
 
         log.debug('Creating empty salt master config %s', master_config)
         open(master_config, 'w').close()

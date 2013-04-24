@@ -55,7 +55,7 @@ class YAMLReader(object):
                         log.debug(
                             'Unable to merge data from file %s: %s',
                             path, e.message)
-            except IOError:
+            except (IOError, TypeError):
                 log.debug('Failed to load file %s', path)
 
         return data
@@ -93,6 +93,10 @@ class Filesystem(YAMLReader, YAMLWriter):
     @staticmethod
     def local_env_path(env):
         return os.path.join(Filesystem.local_path(), env)
+
+    @staticmethod
+    def current_env():
+        return Filesystem.local_env_path('current')
 
     @staticmethod
     def project_path(project):

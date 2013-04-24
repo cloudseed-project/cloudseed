@@ -31,14 +31,13 @@ def __render_script(path, **kwargs):
 def bootstrap_script(script, data, config):
 
     project = config.data['project']
-    env = config.session['environment']
 
     master_project_path = os.path.join(
         Filesystem.project_path(project),
         'master')
 
     master_env_path = os.path.join(
-        Filesystem.local_env_path(env),
+        Filesystem.current_env(),
         'master'
         )
 

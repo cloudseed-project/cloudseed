@@ -131,7 +131,7 @@ class EC2Provider(Loggable):
 
     def _base_security_groups(self, config):
         project = config.data['project'].lower()
-        env = config.session['environment']
+        env = config.environment
 
         return {
         'app': ('cloudseed-{0}-{1}'.format(project, env),
@@ -260,7 +260,7 @@ class EC2Provider(Loggable):
 
         name = 'cloudseed-{0}-{1}'.format(
             config.data['project'],
-            config.session['environment'])
+            config.environment)
 
         filters = {'instance-state-name': 'running', 'group-name': name}
         all_instances = self.conn.get_all_instances(filters=filters)

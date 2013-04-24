@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 def run(config, argv):
 
-    current_env = config.session.get('environment', None)
+    current_env = config.environment
 
     if not current_env:
         sys.stdout.write('No environment available.\n')
