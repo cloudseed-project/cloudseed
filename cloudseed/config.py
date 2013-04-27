@@ -55,10 +55,6 @@ class Config(Loggable):
     def data(self):
         return self.resource.data
 
-    # @property
-    # def session(self):
-    #     return self.resource.session
-
     @property
     def environment(self):
         return self.resource.environment()
@@ -135,14 +131,6 @@ class FilesystemConfig(Loggable, Filesystem):
 
         self.providers = self.load_providers(provider_config)
         self.profile = self.load_profile(profile_config)
-
-        # self.session = self.load_session(session_config)
-
-        # env_key = self.session['environment'] \
-        # if not profile_config \
-        # else profile_config
-
-        #self.profile = self.load_env_profile(env_key)
 
     def update_providers(self, data):
         path = os.path.join(
@@ -254,30 +242,6 @@ class FilesystemConfig(Loggable, Filesystem):
 
         return providers
 
-    # def load_session(self, session_config=None):
-    #     self.log.debug('Loading session data')
-    #     session = {}
-
-    #     if session_config:
-    #         session = self.load_file(session_config)
-    #     else:
-    #         with config_key_error():
-    #             project = self.data['project']
-
-    #             session_paths = self.session_paths(project)
-    #             session = self.load_file(*session_paths)
-
-    #     try:
-    #         env_path = self.local_env_path(session['environment'])
-    #         env_config = os.path.join(env_path, 'config')
-    #         self.data.update(self.load_file(env_config))
-    #     except KeyError:
-    #         pass
-
-    #     session.setdefault('environment', None)
-    #     return session
-
-    # def load_env_profile(self):
     def load_profile(self, profile_config=None):
 
         if not self.environment() and not profile_config:
