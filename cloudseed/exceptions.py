@@ -22,6 +22,10 @@ class ProviderError(CloudseedError):
     '''Provider was unable to fullfill request'''
 
 
+class MissingIdentity(CloudseedError):
+    '''Missing required identity'''
+
+
 class MissingConfigKey(KeyError, CloudseedError):
     '''Missing required config key'''
 

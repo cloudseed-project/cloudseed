@@ -10,10 +10,15 @@ options:
 '''
 import sys
 from docopt import docopt
-
+from cloudseed.utils import ssh
 
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
+
+    profile = config.profile['master']
+    identity = None
+    hostname = None
+    username = None
 
     # TODO ensure we have a bootstrapped master
     # bail if we don't
@@ -25,6 +30,8 @@ def run(config, argv):
 
     if current_env:
         sys.stdout.write('Deploying states \'{0}\'\n'.format(', '.join(states)))
+
+        salt-key --gen-keys=master
         config.provider.deploy(states, machine)
     else:
         sys.stdout.write('No environment available.\n')

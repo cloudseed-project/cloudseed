@@ -17,7 +17,7 @@ from cloudseed.utils import sftp
 from cloudseed.utils import ssh
 from cloudseed.exceptions import UnknownConfigProvider
 from cloudseed.utils.exceptions import (
-    profile_key_error, config_key_error
+    profile_key_error, config_key_error, ssh_client_error
 )
 
 
@@ -27,14 +27,13 @@ log = logging.getLogger(__name__)
 def salt_master_config(config):
 
     project = config.data['project']
-    env = config.session['environment']
 
     master_project_path = os.path.join(
         Filesystem.project_path(project),
         'master')
 
     master_env_path = os.path.join(
-        Filesystem.local_env_path(env),
+        Filesystem.current_env(),
         'master'
         )
 
@@ -47,6 +46,11 @@ def run(config, argv):
 
     args = docopt(__doc__, argv=argv)
 
+    # This is what we will be using or something like it:
+    with ssh_client_error():
+        ssh_client = ssh.client_for_config(config)
+
+    # this is what makes up the above
     profile = config.profile['master']
     identity = None
     hostname = None
@@ -74,7 +78,7 @@ Please set ssh_password on the master profile or provide a private_key \
 in your provider for this master')
         return
 
-    current_env = config.session.get('environment', None)
+    current_env = config.environment
 
     if not current_env:
         sys.stdout.write('No environment available.\n')

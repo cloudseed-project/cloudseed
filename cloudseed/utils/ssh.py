@@ -1,5 +1,14 @@
+import sys
 import os
 import paramiko
+from cloudseed.exceptions import (
+    UnknownConfigProvider, MissingIdentity
+)
+
+from cloudseed.utils.exceptions import (
+    profile_key_error, config_key_error
+)
+
 
 
 def run(client, command):
@@ -18,6 +27,38 @@ def connect(hostname, username, identity):
             hostname=hostname,
             username=username,
             password=identity)
+
+
+def client_for_config(config):
+    profile = config.profile['master']
+    identity = None
+    hostname = None
+    username = None
+
+    # raises UnknownConfigProvider
+    provider = config.provider_for_profile(profile)
+
+    # raises KeyError aka MissingProfileKey
+    with profile_key_error():
+        username = profile['ssh_username']
+
+    # raises KeyError aka MissingConifgKey
+    with config_key_error():
+        hostname = config.data['master']
+
+    identity = profile.get('ssh_password', provider.ssh_identity())
+
+    if not identity:
+        raise MissingIdentity
+#         log.error('No identity specificed.\n\
+# Please set ssh_password on the master profile or provide a private_key \
+# in your provider for this master')
+#         return
+
+    return connect(
+        hostname=hostname,
+        username=username,
+        identity=identity)
 
 
 def client(hostname, identity=None, username=None, password=None, port=22):
