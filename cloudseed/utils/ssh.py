@@ -29,7 +29,7 @@ def connect(hostname, username, identity):
             password=identity)
 
 
-def client_for_config(config):
+def master_client_with_config(config):
     profile = config.profile['master']
     identity = None
     hostname = None

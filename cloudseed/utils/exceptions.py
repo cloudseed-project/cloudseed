@@ -38,21 +38,29 @@ def profile_key_error(send=None):
 
         raise MissingProfileKey(*e.args)
 
+
 @contextmanager
 def ssh_client_error():
     try:
         yield
     except MissingConfigKey as e:
-        pass
+        log.error('%s: %s',
+            MissingConfigKey.__doc__,
+            e.message)
+        raise
     except MissingProfileKey as e:
-        pass
-    except MissingIdentity as e:
-        pass
-    except UnknownConfigProvider as e:
-        pass
-
         log.error('%s: %s',
             MissingProfileKey.__doc__,
             e.message)
+        raise
+    except MissingIdentity as e:
+        log.error('%s: %s',
+            MissingIdentity.__doc__,
+            e.message)
+        raise
+    except UnknownConfigProvider as e:
+        log.error('%s: %s',
+            UnknownConfigProvider.__doc__,
+            e.message)
+        raise
 
-        raise RuntimeError
