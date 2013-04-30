@@ -52,6 +52,7 @@ def init_cloudseed_environment(config, args):
             'size': '<server size>',
             'script': '<bootstrap script>',
             'ssh_username': '<ssh username>',
+            'provider': '<provider_name>'
         },
 
         'minion': {
@@ -59,6 +60,7 @@ def init_cloudseed_environment(config, args):
             'size': '<server size>',
             'script': '<bootstrap script>',
             'ssh_username': '<ssh username>',
+            'provider': '<provider_name>'
         }
     }
 
