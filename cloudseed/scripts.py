@@ -22,7 +22,6 @@ options:
   --version                show version
 
 
-
 common commands:
     init <project>            initialize a new .cloudseed <project>
     init env <environment>    initialize a new .cloudseed <environment> for the current project
