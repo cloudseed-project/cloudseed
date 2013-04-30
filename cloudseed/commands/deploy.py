@@ -37,3 +37,5 @@ def run(config, argv):
     else:
         sys.stdout.write('No environment available.\n')
         sys.stdout.write('Have you run \'cloudseed init env <environment>\'?\n')
+
+

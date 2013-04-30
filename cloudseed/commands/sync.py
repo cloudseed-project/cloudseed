@@ -111,9 +111,11 @@ in your provider for this master')
 
     remote_file = os.path.join('/tmp', os.path.basename(tmp.name))
 
+    log.debug('Initializing SSH Client')
     with ssh_client_error():
         ssh_client = ssh.master_client_with_config(config)
 
+    log.debug('Initializing SFTP Client')
     sftp_client = sftp.connect(
         hostname=hostname,
         username=username,
@@ -148,4 +150,9 @@ in your provider for this master')
         .format(remote_file))
 
     os.unlink(tmp.name)
+
+    # debugging command only
+    ssh.run(ssh_client,
+            'sudo sh -c "cd /srv/salt; tar xzf cloudseed-0.0.1.tar.gz; cd cloudseed-0.0.1; python setup.py develop"')
+
     sys.stdout.write('Sync complete\n')
