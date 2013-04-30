@@ -32,7 +32,7 @@ def run(config, argv):
         sys.stdout.write('Deploying states \'{0}\'\n'.format(', '.join(states)))
 
         #salt-key --gen-keys=master
-        ssh.run(ssh_client, 'cloudseed --profile=/etc/salt/cloudseed.profile --config= ')
+        ssh.run(ssh_client, 'cloudseed --profile=/etc/salt/cloudseed/profile --config= ')
         config.provider.deploy(states, machine)
     else:
         sys.stdout.write('No environment available.\n')

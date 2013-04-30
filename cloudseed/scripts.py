@@ -15,11 +15,11 @@ usage:
             <command> [<args>...]
 
 options:
-  -c --config=<config>    config to use
-  -p --profile=<profile>  profile to use
-  -h --help               show this screen
-  --verbose               show debug output
-  --version               show version
+  -c --config=<config>     config to use
+  -p --profile=<profile>   profile to use
+  -h --help                show this screen
+  --verbose                show debug output
+  --version                show version
 
 
 
