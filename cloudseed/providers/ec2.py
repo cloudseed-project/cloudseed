@@ -194,28 +194,12 @@ class EC2Provider(Loggable):
 
         return [x[0] for x in base_groups]
 
-    def _master_user_data(self, config):
-        data = {}
-
-        key_path = os.path.expanduser(self.provider['private_key'])
-
-        with open(key_path) as f:
-            key = f.read()
-
-        extras = ['echo "{0}" > /etc/salt/cloudseed.pem'.format(key)]
-
-        provider = self.provider.copy()
-        provider['private_key'] = '/etc/salt/cloudseed.pem'
-
-        data['extras'] = extras
-        data['provider'] = yaml.dump(provider, default_flow_style=False)
-        data['profiles'] = yaml.dump(config.profile, default_flow_style=False)
-
-        return data
+    def _extras_user_data(self, config):
+        return []
 
     def _build_master(self, config, profile, security_groups):
 
-        data = self._master_user_data(config)
+        extras = self._extras_user_data(config)
 
         with profile_key_error():
 
@@ -226,8 +210,8 @@ class EC2Provider(Loggable):
             'security_groups': security_groups,
             'user_data': bootstrap_script(
                 profile['script'],
-                data=data,
-                config=config)
+                config=config,
+                extras=extras)
             }
 
         self.log.debug('Creating instance with %s', kwargs)

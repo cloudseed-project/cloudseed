@@ -46,9 +46,7 @@ def run(config, argv):
 
     args = docopt(__doc__, argv=argv)
 
-    # This is what we will be using or something like it:
-    with ssh_client_error():
-        ssh_client = ssh.client_for_config(config)
+
 
     # this is what makes up the above
     profile = config.profile['master']
@@ -113,12 +111,10 @@ in your provider for this master')
 
     remote_file = os.path.join('/tmp', os.path.basename(tmp.name))
 
-    sftp_client = sftp.connect(
-        hostname=hostname,
-        username=username,
-        identity=identity)
+    with ssh_client_error():
+        ssh_client = ssh.master_client_with_config(config)
 
-    ssh_client = ssh.connect(
+    sftp_client = sftp.connect(
         hostname=hostname,
         username=username,
         identity=identity)

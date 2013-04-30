@@ -1,13 +1,17 @@
 #!/bin/bash
-mkdir -p /etc/salt
+mkdir -p /etc/salt/cloudseed
 echo "{{ master }}" > /etc/salt/master
 echo "{{ minion }}" > /etc/salt/minion
-echo "{{ provider }}" > /etc/salt/cloudseed; chmod 600 /etc/salt/cloudseed
-echo "{{ profiles }}" > /etc/salt/cloudseed.profile; chmod 600 /etc/salt/cloudseed.profile
+echo "{{ provider }}" > /etc/salt/cloudseed/providers; chmod 600 /etc/salt/cloudseed/providers
+echo "{{ profiles }}" > /etc/salt/cloudseed/profile; chmod 600 /etc/salt/cloudseed/profile
 
-{% for item in  extras %}
+{% for item in transfer_keys -%}
 {{ item }}
-{% endfor %}
+{% endfor -%}
+
+{% for item in extras -%}
+{{ item }}
+{% endfor -%}
 
 add-apt-repository ppa:saltstack/salt
 apt-get update

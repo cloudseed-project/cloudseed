@@ -10,8 +10,9 @@ import logging
 from subprocess import call
 from cloudseed.exceptions import ProviderError
 from cloudseed.exceptions import UnknownConfigProvider
+from cloudseed.utils import ssh
 from cloudseed.utils.exceptions import (
-    profile_key_error, config_key_error
+    profile_key_error, config_key_error, ssh_client_error
 )
 
 

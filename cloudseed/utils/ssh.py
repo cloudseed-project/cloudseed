@@ -1,5 +1,6 @@
-import sys
+from __future__ import absolute_import
 import os
+import logging
 import paramiko
 from cloudseed.exceptions import (
     UnknownConfigProvider, MissingIdentity
@@ -10,9 +11,46 @@ from cloudseed.utils.exceptions import (
 )
 
 
+log = logging.getLogger(__name__)
+
 
 def run(client, command):
     client.exec_command(command)
+
+
+def master_client_with_config(config):
+    profile = config.profile['master']
+    identity = None
+    hostname = None
+    username = None
+
+    # raises UnknownConfigProvider
+    provider = config.provider_for_profile(profile)
+
+    # raises KeyError aka MissingProfileKey
+    with profile_key_error():
+        username = profile['ssh_username']
+        log.debug('SSH Client Username: %s', username)
+
+    # raises KeyError aka MissingConifgKey
+    with config_key_error():
+        hostname = config.data['master']
+        log.debug('SSH Client Hostname: %s', hostname)
+
+    identity = profile.get('ssh_password', provider.ssh_identity())
+    log.debug('SSH Client Identity: %s', identity)
+
+    if not identity:
+        raise MissingIdentity
+#         log.error('No identity specificed.\n\
+# Please set ssh_password on the master profile or provide a private_key \
+# in your provider for this master')
+#         return
+
+    return connect(
+        hostname=hostname,
+        username=username,
+        identity=identity)
 
 
 def connect(hostname, username, identity):
@@ -29,38 +67,6 @@ def connect(hostname, username, identity):
             password=identity)
 
 
-def master_client_with_config(config):
-    profile = config.profile['master']
-    identity = None
-    hostname = None
-    username = None
-
-    # raises UnknownConfigProvider
-    provider = config.provider_for_profile(profile)
-
-    # raises KeyError aka MissingProfileKey
-    with profile_key_error():
-        username = profile['ssh_username']
-
-    # raises KeyError aka MissingConifgKey
-    with config_key_error():
-        hostname = config.data['master']
-
-    identity = profile.get('ssh_password', provider.ssh_identity())
-
-    if not identity:
-        raise MissingIdentity
-#         log.error('No identity specificed.\n\
-# Please set ssh_password on the master profile or provide a private_key \
-# in your provider for this master')
-#         return
-
-    return connect(
-        hostname=hostname,
-        username=username,
-        identity=identity)
-
-
 def client(hostname, identity=None, username=None, password=None, port=22):
 
     if identity:
@@ -70,6 +76,10 @@ def client(hostname, identity=None, username=None, password=None, port=22):
 
 
 def _client_with_identity(hostname, port, username, identity):
+    log.debug(
+        'Initializing SSH Client: ssh -p %s-i %s %s@%s',
+        port, identity, username, hostname, port)
+
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(
@@ -81,6 +91,9 @@ def _client_with_identity(hostname, port, username, identity):
 
 
 def _client_with_password(hostname, port, username, password):
+    log.debug(
+        'Initializing SSH Client\nhostname: %s\nport: %s\nusername: %s\npassword: %s\n',
+        hostname, port, username, password)
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(
