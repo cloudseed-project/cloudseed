@@ -111,7 +111,6 @@ class FilesystemConfig(Loggable, Filesystem):
         local_config,
         project_config=None,
         global_config=None,
-        session_config=None,
         profile_config=None,
         provider_config=None):
 
@@ -125,7 +124,6 @@ class FilesystemConfig(Loggable, Filesystem):
         except ConfigNotFound:
             self.log.warning('No config found, operations will be limited')
             self.data = {}
-            self.session = {}
             self.profile = {}
             return
 
@@ -158,19 +156,6 @@ class FilesystemConfig(Loggable, Filesystem):
         self.write_file(path, config)
         self.data.update(data)
 
-    def update_session(self, data):
-
-        path = self.session_paths(
-            self.data['project'])[0]
-
-        self.log.debug('Updating session %s', path)
-
-        session = self.load_file(path)
-        session.update(data)
-
-        self.write_file(path, session)
-        self.session.update(data)
-
     def environment(self):
         local_path = self.local_path()
         current = os.path.join(local_path, 'current')
@@ -202,13 +187,6 @@ class FilesystemConfig(Loggable, Filesystem):
         self.data = self.load_config()
         self.providers = self.load_providers()
         self.profile = self.load_profile()
-
-    def session_paths(self, project):
-        path = os.path.join(
-            self.project_path(project),
-            'session')
-
-        return [path]
 
     def env_profile_paths(self, project):
 

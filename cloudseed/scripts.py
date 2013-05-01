@@ -12,11 +12,12 @@ def cloudseed_main():
     '''
 usage:
   cloudseed [--version] [--verbose] [--help] [-c|--config=<config>] [-p|--profile=<profile>]
-            <command> [<args>...]
+            [-r|--provider=<provider>] <command> [<args>...]
 
 options:
   -c --config=<config>     config to use
   -p --profile=<profile>   profile to use
+  -r --provider=<provider> provider to use
   -h --help                show this screen
   --verbose                show debug output
   --version                show version
@@ -53,9 +54,15 @@ common commands:
     except IndexError:
         local_config = None
 
+    try:
+        provider_config = args['--provider'][0]
+    except IndexError:
+        provider_config = None
+
     config = Config(FilesystemConfig(
         local_config=local_config,
-        profile_config=profile_config))
+        profile_config=profile_config,
+        provider_config=provider_config))
 
     if command == 'init':
         from cloudseed.commands import initialize

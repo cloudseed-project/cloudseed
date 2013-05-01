@@ -98,7 +98,8 @@ def bootstrap_script(script, config, extras):
     master = Filesystem.encode(merged_master)
     minion = Filesystem.encode(
         {'id': 'master',
-        'master': 'localhost'})
+        'master': 'localhost',
+        'grains': {'roles': ['master']}})
 
     if os.path.isabs(script):
         # The user provided an absolute path to the deploy script, let's use it

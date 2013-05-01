@@ -15,7 +15,13 @@ log = logging.getLogger(__name__)
 
 
 def run(client, command):
-    client.exec_command(command)
+    # to get the exit code of the command:
+    # chan = client.get_transport().open_session()
+    # chan.exec_command(command)
+    # print('exit status: %s' % chan.recv_exit_status())
+
+    stdin, stdout, stderr = client.exec_command(command)
+    return stdout.read()
 
 
 def master_client_with_config(config):
@@ -78,7 +84,7 @@ def client(hostname, identity=None, username=None, password=None, port=22):
 def _client_with_identity(hostname, port, username, identity):
     log.debug(
         'Initializing SSH Client: ssh -p %s-i %s %s@%s',
-        port, identity, username, hostname, port)
+        port, identity, username, hostname)
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())

@@ -15,8 +15,8 @@ def run(config, argv):
 
     env = config.environment
 
-    write('Current Environment: {0}'.format(env))
-    write('Master available at: {0}'\
+    write('environment: {0}'.format(env))
+    write('master: {0}'\
         .format(config.data.get('master', 'Not Bootstrapped')))
 
 

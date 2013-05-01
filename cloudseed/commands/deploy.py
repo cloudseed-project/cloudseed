@@ -9,16 +9,22 @@ options:
 
 '''
 import sys
+import logging
+import yaml
 from docopt import docopt
 from cloudseed.utils import ssh
 from cloudseed.utils.exceptions import ssh_client_error
 
 
+log = logging.getLogger(__name__)
+
+
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
 
-    states = args['<state>']
+    state = args['<state>'][0]
     machine = args['<machine>']
+    minion_id = 0
 
     # TODO ensure we have a bootstrapped master
     # bail if we don't
@@ -29,10 +35,35 @@ def run(config, argv):
     current_env = config.environment
 
     if current_env:
-        sys.stdout.write('Deploying states \'{0}\'\n'.format(', '.join(states)))
+        sys.stdout.write('Deploying states \'{0}\'\n'.format(state))
+
+        cmd_current_items = 'sudo sh -c "salt -G \'roles:{0}\' grains.item id"'\
+        .format(state)
+
+
+        log.debug('Executing: %s', cmd_current_items)
+
+        data = ssh.run(
+            ssh_client,
+            cmd_current_items)
+
+        if not data.lower().startswith('no minions matched'):
+            obj = yaml.load(data)
+            minion_id = len(list(obj.iterkeys()))
+
+        ssh.run(
+            ssh_client,
+            'sudo sh -c "salt-key --gen-keys-dir=/tmp --gen-keys={0}{1}"'.format(state, minion_id))
 
         #salt-key --gen-keys=master
-        ssh.run(ssh_client, 'cloudseed --profile=/etc/salt/cloudseed/profile --config= ')
+        profile_path = '/etc/salt/cloudseed/profile'
+        provider_path = '/etc/salt/cloudseed/providers'
+
+        ssh.run(
+            ssh_client,
+            'cloudseed --profile={0} --provider={1} deploy {2}' \
+            .format(profile_path, provider_path, state))
+
         config.provider.deploy(states, machine)
     else:
         sys.stdout.write('No environment available.\n')
