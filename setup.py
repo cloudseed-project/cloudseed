@@ -57,7 +57,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'cloudseed = cloudseed.scripts:main',
+            'cloudseed = cloudseed.cli.main:main',
         ],
 
         'com.cloudseed.providers': [
