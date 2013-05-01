@@ -100,12 +100,14 @@ def create_master(config, data=None):
     if not data:
         data = _master_data(config)
 
-    create_instance(
+    result = create_instance(
         config=config,
         profile_name='master',
         state='master',
-        data=data
-        )
+        data=data)
+
+    config.update_config({'master': result})
+
 
 # def create_master(config):
 

@@ -22,10 +22,12 @@ class NeedsEc2Key(CloudseedError):
 
 class EC2Provider(Loggable):
 
-    def __init__(self, provider):
+    def __init__(self, key, data):
         self.pem_file = None
-        self.provider = provider
-        self._connect(provider)
+        self.key = key
+        self.provider = data
+
+        self._connect(data)
 
     def _connect(self, provider):
 
@@ -129,7 +131,7 @@ class EC2Provider(Loggable):
     def create_key_pair(self, config):
         name = '{0}_{1}_{2}'.format(
                 config.data.get('project'),
-                config.session.get('environment'),
+                config.environment,
                 'ec2'
             )
 
@@ -143,6 +145,8 @@ class EC2Provider(Loggable):
 
         self.provider['keyname'] = name
         self.provider['private_key'] = filename
+
+        config.update_providers({self.key: self.provider})
 
     def _ec2_key_exists(self, name):
         try:

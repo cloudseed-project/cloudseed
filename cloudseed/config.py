@@ -1,5 +1,5 @@
 import os
-from stevedore import driver
+import stevedore
 from cloudseed.utils.logging import Loggable
 from cloudseed.utils.filesystem import Filesystem
 from cloudseed.utils.exceptions import config_key_error
@@ -30,29 +30,29 @@ class Config(Loggable):
         # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
 
     def provider_for_profile(self, profile):
-        provider_name = profile['provider']
+        provider_key = profile['provider']
 
         try:
-            provider_config = self.providers[provider_name]
+            provider_data = self.providers[provider_key]
         except KeyError:
-            self.log.error('Unable to locate provider \'%s\'', provider_name)
-            raise UnknownConfigProvider(provider_name)
+            self.log.error('Unable to locate provider \'%s\'', provider_key)
+            raise UnknownConfigProvider(provider_key)
 
-        return self.provider_for_config(provider_config)
+        return self.provider_from_key_and_data(provider_key, provider_data)
 
-    def provider_for_config(self, config):
-        name = config['provider']
+    def provider_from_key_and_data(self, key, data):
+        driver = data['provider']
 
         try:
-            em = driver.DriverManager(
+            em = stevedore.driver.DriverManager(
                 'com.cloudseed.providers',
-                name,
+                driver,
                 invoke_on_load=True,
-                invoke_kwds={'provider': config})
+                invoke_kwds={'data': data, 'key': key})
             return em.driver
         except RuntimeError:
-            self.log.error('Unknown Config Provider %s', name)
-            raise UnknownConfigProvider(name)
+            self.log.error('Unknown Config Provider %s', driver)
+            raise UnknownConfigProvider(key)
 
     @property
     def data(self):
