@@ -37,7 +37,7 @@ def run(config, argv):
     if current_env:
         sys.stdout.write('Deploying states \'{0}\'\n'.format(state))
 
-        cmd_current_items = 'sudo sh -c "salt -G \'roles:{0}\' grains.item id"'\
+        cmd_current_items = 'sudo sh -c "salt --out=yaml -G \'roles:{0}\' grains.item id"'\
         .format(state)
 
 
