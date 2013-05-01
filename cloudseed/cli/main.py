@@ -72,6 +72,10 @@ common commands:
         from cloudseed.cli import bootstrap
         bootstrap.run(config, argv)
 
+    elif command == 'instance':
+        from cloudseed.cli import instance
+        instance.run(config, argv)
+
     elif command == 'ssh':
         from cloudseed.cli import ssh
         ssh.run(config, argv)

@@ -24,6 +24,13 @@ def create_master(config):
 
     config.update_config({'master': result})
 
+def create_instance(config, profile_name, salt_config):
+    profile = config.profile[profile_name]
+
+    # raises UnknownConfigProvider
+    provider = config.provider_for_profile(profile)
+
+
 
 def next_id_for_state(state, config):
 
