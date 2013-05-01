@@ -1,6 +1,6 @@
 '''
 usage:
-  cloudseed instance --profile-name=<profile_name> --salt-config=<salt-config>
+  cloudseed instance --profile-name=<profile_name> --state=<state>
 
 options:
   -h, --help               show this screen.
@@ -12,25 +12,27 @@ import sys
 import os
 import yaml
 from docopt import docopt
+from cloudseed.modules import instances
 from cloudseed.utils.filesystem import YAMLReader
+from cloudseed.utils.filesystem import Filesystem
+
 
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
-    print(args)
+
     current_env = config.environment
     profile_name = args['--profile-name']
-    salt_config_path = args['--salt-config']
-
-    if not os.path.isfile(salt_config_path):
-        sys.stdout.write('No config found at {0}.\n'.format(salt_config_path))
-        return
-
-    salt_config = YAMLReader.load_file(salt_config_path)
-
-    import pdb; pdb.set_trace()
-
+    state = args['--state']
 
     if not current_env:
         sys.stdout.write('No environment available.\n')
         sys.stdout.write('Have you run \'cloudseed init env <environment>\'?\n')
         return
+
+    data = {}
+
+    instances.create_instance(
+        config=config,
+        profile_name=profile_name,
+        state=state,
+        data=data)

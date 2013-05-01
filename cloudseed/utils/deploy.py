@@ -73,11 +73,39 @@ def _providers_for_config(config):
     return result
 
 
+def script(script, config, data):
+
+    if os.path.isabs(script):
+        # The user provided an absolute path to the deploy script, let's use it
+        return __render_script(
+            script,
+            data=data)
+
+    if os.path.isabs('{0}.sh'.format(script)):
+        # The user provided an absolute path to the deploy script, although no
+        # extension was provided. Let's use it anyway.
+        return __render_script(
+            '{0}.sh'.format(script),
+            data=data)
+
+    for search_path in config.script_paths:
+        if os.path.isfile(os.path.join(search_path, script)):
+            return __render_script(
+                os.path.join(search_path, script),
+                data=data)
+
+        if os.path.isfile(os.path.join(search_path, '{0}.sh'.format(script))):
+            return __render_script(
+                os.path.join(search_path, '{0}.sh'.format(script)),
+                data=data)
+
+    # No deploy script was found, return an empty string
+    return ''
+
 def bootstrap_script(script, config, extras):
 
     project = config.data['project']
     profiles = config.profile
-
     providers = _providers_for_config(config)
 
     transfer_keys_data = _transfer_keys_for_providers(providers)

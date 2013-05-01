@@ -11,8 +11,9 @@ from cloudseed.config import FilesystemConfig
 def cloudseed_main():
     '''
 usage:
-  cloudseed [--version] [--verbose] [--help] [-c|--config=<config>] [-p|--profile=<profile>]
-            [-r|--provider=<provider>] <command> [<args>...]
+  cloudseed [--version] [--verbose] [--help] [-c|--config=<config>]
+            [-p|--profile=<profile>] [-r|--provider=<provider>]
+            <command> [<args>...]
 
 options:
   -c --config=<config>     config to use

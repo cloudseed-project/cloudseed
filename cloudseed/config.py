@@ -17,6 +17,9 @@ class Config(Loggable):
         # CONSIDER APPENDING PROJECT BASED SCRIPT PATH AS WELL TO BOTH
         # MASTER AND MINION DEPLOY SCRIPT PATHS
 
+        self.script_paths = [os.path.abspath(
+            os.path.join(os.path.dirname(__file__), 'resources'))]
+
         self.master_script_paths = [os.path.abspath(
             os.path.join(os.path.dirname(__file__), 'resources', 'masters'))]
 

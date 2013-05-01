@@ -6,6 +6,7 @@ import boto
 from boto import ec2
 from boto.exception import EC2ResponseError
 from cloudseed.utils.deploy import bootstrap_script
+from cloudseed.utils.deploy import script
 from cloudseed.modules import instances
 from cloudseed.security import write_key_for_config
 from cloudseed.utils.exceptions import config_key_error, profile_key_error
@@ -56,6 +57,28 @@ class EC2Provider(Loggable):
 
     def deploy(self, states, machine):
         self.log.debug('States for deploy: %s', states)
+
+    def create_instance(self, profile, config, instance_name, data):
+        self.log.debug('Creating instance')
+
+        try:
+            self.verify_keys()
+        except NeedsEc2Key:
+            self.log.debug('Createing EC2 key')
+            self.create_key_pair(config)
+
+        groups = self._initialize_security_groups(config)
+
+        user_data = script(
+            profile['script'],
+            config=config,
+            data=data)
+
+        return self._create_instance(
+            instance_name=instance_name,
+            profile=profile,
+            security_groups=groups,
+            user_data=user_data)
 
     def bootstrap(self, profile, config):
         self.log.debug('Creating bootstrap node')
