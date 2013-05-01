@@ -69,6 +69,7 @@ class EC2Provider(Loggable):
             self.log.debug('Createing EC2 key')
             self.create_key_pair(config)
 
+        import pdb; pdb.set_trace()
         groups = self._initialize_security_groups(config)
 
         user_data = script(
