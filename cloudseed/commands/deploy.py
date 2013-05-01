@@ -47,6 +47,7 @@ def run(config, argv):
             ssh_client,
             cmd_current_items)
 
+        # https://github.com/saltstack/salt/issues/4696
         if not data.lower().startswith('no minions matched'):
             obj = yaml.load(data)
             minion_id = len(list(obj.iterkeys()))
