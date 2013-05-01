@@ -6,6 +6,7 @@ import boto
 from boto import ec2
 from boto.exception import EC2ResponseError
 from cloudseed.utils.deploy import bootstrap_script
+from cloudseed.modules import instances
 from cloudseed.security import write_key_for_config
 from cloudseed.utils.exceptions import config_key_error, profile_key_error
 from cloudseed.exceptions import (
@@ -58,6 +59,7 @@ class EC2Provider(Loggable):
 
     def bootstrap(self, profile, config):
         self.log.debug('Creating bootstrap node')
+
         try:
             self.verify_keys()
         except NeedsEc2Key:
@@ -65,11 +67,20 @@ class EC2Provider(Loggable):
             self.create_key_pair(config)
 
         groups = self._initialize_security_groups(config)
+        extras = self._extras_user_data(config)
 
-        return self._build_master(
+        user_data = bootstrap_script(
+            profile['script'],
             config=config,
+            extras=extras)
+
+        instance_name = instances.instance_name_for_state('master', config)
+
+        return self._create_instance(
+            instance_name=instance_name,
             profile=profile,
-            security_groups=groups)
+            security_groups=groups,
+            user_data=user_data)
 
     def verify_keys(self):
 
@@ -197,29 +208,21 @@ class EC2Provider(Loggable):
     def _extras_user_data(self, config):
         return []
 
-    def _build_master(self, config, profile, security_groups):
-
-        extras = self._extras_user_data(config)
+    def _create_instance(self, instance_name, profile, security_groups, user_data):
 
         with profile_key_error():
-
             kwargs = {
             'image_id': profile['image'],
             'key_name': self.provider['keyname'],
             'instance_type': profile['size'],
             'security_groups': security_groups,
-            'user_data': bootstrap_script(
-                profile['script'],
-                config=config,
-                extras=extras)
+            'user_data': user_data
             }
 
         self.log.debug('Creating instance with %s', kwargs)
         reservation = self.conn.run_instances(**kwargs)
 
         instance = reservation.instances[0]
-        instance_name = 'cloudseed-{0}-0'.format(
-            config.data['project'].lower())
 
         self.log.debug('Waiting for instance to become available, this can take a minute or so.')
 

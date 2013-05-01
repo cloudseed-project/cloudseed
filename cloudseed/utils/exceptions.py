@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import logging
+import paramiko
 from contextlib import contextmanager
 from cloudseed.exceptions import (
     MissingConfigKey, MissingProfileKey, MissingIdentity,
@@ -62,5 +63,7 @@ def ssh_client_error():
         log.error('%s: %s',
             UnknownConfigProvider.__doc__,
             e.message)
+        raise
+    except paramiko.AuthenticationException:
         raise
 
