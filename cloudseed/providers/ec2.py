@@ -118,6 +118,10 @@ class EC2Provider(Loggable):
         self.provider['keyname'] = name
         self.provider['private_key'] = filename
 
+        # We have a write operation here that does not happen
+        # on the CLI level. I feel a little weird about it
+        # but have not though of a better way to handle this
+        # situation, so for now, it is what it is.
         config.update_providers({self.key: self.provider})
 
     def _ec2_key_exists(self, name):
