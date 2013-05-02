@@ -113,7 +113,7 @@ def create_master(config, data=None, instance_name=None):
 
 
 def create_instance(config, profile_name, state, data, instance_name=None):
-    profile = config.profile[profile_name]
+    profile = config.profile_for_key(profile_name)
 
     # raises UnknownConfigProvider
     provider = config.provider_for_profile(profile)
