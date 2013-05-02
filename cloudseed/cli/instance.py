@@ -19,14 +19,8 @@ from cloudseed.utils.filesystem import Filesystem
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
 
-    current_env = config.environment
     profile_name = args['--profile-name']
     state = args['--state']
-
-    if not current_env:
-        sys.stdout.write('No environment available.\n')
-        sys.stdout.write('Have you run \'cloudseed init env <environment>\'?\n')
-        return
 
     data = {'salt': {}}
 
