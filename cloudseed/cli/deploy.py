@@ -1,12 +1,10 @@
 '''
 usage:
-  cloudseed deploy <state>... [<machine>]
+  cloudseed deploy <state>...
 
 options:
   -h, --help         Show this screen.
   <state>            The state you would like to deploy
-  <machine>          Optional machine to deploy the state too
-
 '''
 import sys
 import logging
@@ -22,9 +20,7 @@ log = logging.getLogger(__name__)
 def run(config, argv):
     args = docopt(__doc__, argv=argv)
 
-    state = args['<state>'][0]
-    machine = args['<machine>']
-    minion_id = 0
+    states = args['<state>']
 
     # TODO ensure we have a bootstrapped master
     # bail if we don't
@@ -35,37 +31,26 @@ def run(config, argv):
     current_env = config.environment
 
     if current_env:
-        sys.stdout.write('Deploying states \'{0}\'\n'.format(state))
 
-        cmd_current_items = 'sudo sh -c "salt --out=yaml -G \'roles:{0}\' grains.item id"'\
-        .format(state)
-
-
-        log.debug('Executing: %s', cmd_current_items)
-
-        data = ssh.run(
-            ssh_client,
-            cmd_current_items)
-
-        # https://github.com/saltstack/salt/issues/4696
-        if not data.lower().startswith('no minions matched'):
-            obj = yaml.load(data)
-            minion_id = len(list(obj.iterkeys()))
-
-        ssh.run(
-            ssh_client,
-            'sudo sh -c "salt-key --gen-keys-dir=/tmp --gen-keys={0}{1}"'.format(state, minion_id))
-
-        #salt-key --gen-keys=master
+        sys.stdout.write('Deploying states \'{0}\'\n'.format(','.join(states)))
+        config_path = '/etc/salt/cloudseed/config'
         profile_path = '/etc/salt/cloudseed/profile'
-        provider_path = '/etc/salt/cloudseed/providers'
+        providers_path = '/etc/salt/cloudseed/providers'
 
-        ssh.run(
-            ssh_client,
-            'cloudseed --profile={0} --provider={1} deploy {2}' \
-            .format(profile_path, provider_path, state))
+        for state in states:
+            if config.profile_for_key(state):
+                cmd = 'cloudseed --config={0} --profile={1} --provider={2} instance --profile-name={3} --state={3} &'\
+                .format(
+                    config_path,
+                    profile_path,
+                    providers_path,
+                    state)
 
-        config.provider.deploy(states, machine)
+                wrap_cmd = 'sudo sh -c "{0}"'.format(cmd)
+                log.debug('Executing: %s', wrap_cmd)
+
+                ssh.run(ssh_client, wrap_cmd)
+
     else:
         sys.stdout.write('No environment available.\n')
         sys.stdout.write('Have you run \'cloudseed init env <environment>\'?\n')

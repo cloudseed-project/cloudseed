@@ -144,10 +144,14 @@ def next_id_for_state(state, config):
         ssh_client,
         cmd_current_items)
 
+    log.debug('Received data: %s', data)
+
     # https://github.com/saltstack/salt/issues/4696
     if not data.lower().startswith('no minions matched'):
         obj = yaml.load(data)
-        return len(list(obj.iterkeys()))
+        count = len(list(obj.iterkeys()))
+        log.debug('Got count %s for state %s', count, state)
+        return count
 
     return 0
 
