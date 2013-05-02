@@ -95,7 +95,7 @@ def _master_data(config):
     }
 
 
-def create_master(config, data=None):
+def create_master(config, data=None, instance_name=None):
 
     if not data:
         data = _master_data(config)
@@ -104,15 +104,18 @@ def create_master(config, data=None):
         config=config,
         profile_name='master',
         state='master',
-        data=data)
+        data=data,
+        instance_name=instance_name)
 
 
-def create_instance(config, profile_name, state, data):
+def create_instance(config, profile_name, state, data, instance_name=None):
     profile = config.profile[profile_name]
 
     # raises UnknownConfigProvider
     provider = config.provider_for_profile(profile)
-    instance_name = instance_name_for_state(state, config)
+
+    if not instance_name:
+        instance_name = instance_name_for_state(state, config)
 
     return provider.create_instance(
         profile,
