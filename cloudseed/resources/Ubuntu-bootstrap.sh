@@ -26,4 +26,4 @@ mkdir -p /etc/salt/pki/minion
 mv master.pub /etc/salt/pki/minion/minion.pub
 mv master.pem /etc/salt/pki/minion/minion.pem
 apt-get install -y -o DPkg::Options::=--force-confold salt-minion
-sleep 1; /usr/bin/salt "master" state.highstate
+sleep 2; /usr/bin/salt "master" state.highstate
