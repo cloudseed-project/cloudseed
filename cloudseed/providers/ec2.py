@@ -1,7 +1,6 @@
 import os
 import time
 from itertools import starmap
-import yaml
 import boto
 from boto import ec2
 from boto.exception import EC2ResponseError
