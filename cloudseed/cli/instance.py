@@ -40,7 +40,11 @@ def run(config, argv):
     except KeyError:
         return
 
-    minion_data = {'master': master_fqdn}
+    minion_data = {
+    'master': master_fqdn,
+    'id': minion_id
+    }
+
     profile = config.profile_for_key(profile_name)
     minion_data.update(profile.get('minion', {}))
 
