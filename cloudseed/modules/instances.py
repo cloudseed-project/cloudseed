@@ -1,7 +1,6 @@
 import os
 import logging
 import yaml
-import salt.config
 from cloudseed.utils import ssh
 from cloudseed.utils.filesystem import Filesystem
 
