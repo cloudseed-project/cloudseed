@@ -153,6 +153,6 @@ in your provider for this master')
 
     # debugging command only
     ssh.run(ssh_client,
-            'sudo sh -c "cd /srv/salt; tar xzf cloudseed-0.0.1.tar.gz; cd cloudseed-0.0.1; python setup.py develop"')
+            'sudo sh -c "salt \'master\' state.highstate"')
 
     sys.stdout.write('Sync complete\n')
