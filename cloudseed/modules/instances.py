@@ -157,7 +157,9 @@ def next_id_for_state(state, config):
 
 
 def instance_name_for_state(state, config):
+    log.debug('Generating instance name for state %s', state)
     instance_id = next_id_for_state(state, config)
+    log.debug('Next id for state %s is %s', state, instance_id)
 
     return 'cloudseed-{0}-{1}-{2}-{3}'.format(
         config.data['project'].lower(),
