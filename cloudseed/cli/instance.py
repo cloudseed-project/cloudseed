@@ -14,8 +14,6 @@ import yaml
 from docopt import docopt
 from cloudseed.modules import instances
 from cloudseed.modules import salt
-from cloudseed.utils.filesystem import YAMLReader
-from cloudseed.utils.filesystem import Filesystem
 
 
 def run(config, argv):

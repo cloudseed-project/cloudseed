@@ -62,7 +62,7 @@ class EC2Provider(Loggable):
         groups = [instance_name]
 
         self._initialize_security_groups(config)
-        self._create_security_group(instance_name, config)
+        self._create_security_group(instance_name, config, profile)
 
         if state == 'master':
             base_groups = self._base_security_groups(config)
@@ -143,7 +143,7 @@ class EC2Provider(Loggable):
             if key.name == name:
                 key.delete()
 
-    def _create_security_group(self, name, config):
+    def _create_security_group(self, name, config, profile):
         conn = self.conn
         current_groups = conn.get_all_security_groups()
         current_set = frozenset([x.name for x in current_groups])
@@ -158,7 +158,14 @@ class EC2Provider(Loggable):
             config.environment,
             instance_id)
 
-        conn.create_security_group(name, description)
+        group = conn.create_security_group(name, description)
+
+        for port in profile.get('exposes', ()):
+            group.authorize(
+                    ip_protocol='tcp',
+                    from_port=port,
+                    to_port=port,
+                    cidr_ip='0.0.0.0/0')
 
     def _base_security_groups(self, config):
         project = config.data['project'].lower()
