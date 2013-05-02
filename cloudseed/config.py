@@ -27,9 +27,6 @@ class Config(Loggable):
         self.minion_script_paths = [os.path.abspath(
             os.path.join(os.path.dirname(__file__), 'resources', 'minions'))]
 
-        # TODO: EXPOSE MASTER AND MINION CONFIG PATHS SOME HOW
-        # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
-
     def master_config_data(self, data=None, files=None):
         master = salt.config.DEFAULT_MASTER_OPTS.copy()
 

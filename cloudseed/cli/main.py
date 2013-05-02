@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import os
 import logging
 from subprocess import call
 from docopt import docopt
@@ -46,17 +47,17 @@ common commands:
     initialize_logging(verbose=args['--verbose'])
 
     try:
-        profile_config = args['--profile'][0]
+        profile_config = os.path.abspath(args['--profile'][0])
     except IndexError:
         profile_config = None
 
     try:
-        local_config = args['--config'][0]
+        local_config = os.path.abspath(args['--config'][0])
     except IndexError:
         local_config = None
 
     try:
-        provider_config = args['--provider'][0]
+        provider_config = os.path.abspath(args['--provider'][0])
     except IndexError:
         provider_config = None
 
