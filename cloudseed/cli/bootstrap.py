@@ -31,4 +31,5 @@ def run(config, argv):
     sys.stdout.write('Bootstrapping \'{0}\'\n'.format(current_env))
     sys.stdout.write('This may take a minute, please wait...\n')
 
-    instances.create_master(config)
+    result = instances.create_master(config)
+    config.update_config({'master': result})
