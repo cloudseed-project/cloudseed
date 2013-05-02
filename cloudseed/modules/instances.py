@@ -133,7 +133,8 @@ def next_id_for_state(state, config):
     import pdb; pdb.set_trace()
     try:
         ssh_client = ssh.master_client_with_config(config)
-    except:
+    except Exception as e:
+        log.error(e)
         return 0
 
     cmd_current_items = 'sudo sh -c "salt --out=yaml -G \'roles:{0}\' grains.item id"'\
