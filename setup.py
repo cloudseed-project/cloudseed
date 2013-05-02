@@ -23,10 +23,11 @@ tests_require = ['nose']
 
 packages = [
     'cloudseed',
-    'cloudseed.commands',
+    'cloudseed.cli',
     'cloudseed.providers',
     'cloudseed.resources',
-    'cloudseed.utils'
+    'cloudseed.utils',
+    'cloudseed.modules'
 ]
 
 setup(
@@ -40,8 +41,8 @@ setup(
     license=license,
     packages=packages,
     package_data={'': ['LICENSE'],
-                  'cloudseed.masters': ['resources/masters/*.sh'],
-                  'cloudseed.minions': ['resources/minions/*.sh']},
+                  'cloudseed.masters': ['resources/*.sh'],
+                  'cloudseed.minions': ['resources/*.sh']},
     include_package_data=True,
     install_requires=install_requires,
     tests_require=tests_require,
