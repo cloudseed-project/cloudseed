@@ -33,7 +33,7 @@ packages = [
 setup(
     name='cloudseed',
     version='0.0.1',
-    description='Cloudtools',
+    description='Cloudseed',
     long_description=readme,
     author='Adam Venturella <aventurella@gmail.com>, Dino Petrone <dinopetrone@gmail.com> Aubrey Taylor <aubricus@gmail.com>',
     author_email='aventurella@gmail.com, dinopetrone@gmail.com aubricus@gmail.com',
