@@ -123,10 +123,6 @@ class Config(Loggable):
         self.log.debug('Updating config with %s', data)
         self.resource.update_config(data)
 
-    def update_session(self, data):
-        self.log.debug('Updating session with %s', data)
-        self.resource.update_session(data)
-
     def activate_environment(self, value):
         self.log.debug('Activating environment: %s', value)
         self.resource.activate_environment(value)
@@ -148,9 +144,6 @@ class MemoryConfig(Loggable):
 
     def update_config(self, data, _):
         self.data.update(data)
-
-    def update_session(self, data):
-        self.session.update(data)
 
 
 class FilesystemConfig(Loggable, Filesystem):

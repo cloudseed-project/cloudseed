@@ -57,11 +57,14 @@ def _master_data(config):
 
     profiles = config.profile
     providers = _providers_for_config(config)
+    config_obj = config.data.copy()
+    config_obj['master'] = 'localhost'
 
     ssh_keys_data = _ssh_keys_for_providers(providers)
     profiles_data = Filesystem.encode(profiles)
     providers_data = Filesystem.encode(providers)
-    config_data = Filesystem.encode(config.data)
+
+    config_data = Filesystem.encode(config_obj)
 
     project = config.data['project']
     master_project_path = os.path.join(
@@ -130,7 +133,6 @@ def create_instance(config, profile_name, state, data, instance_name=None):
 
 
 def next_id_for_state(state, config):
-    import pdb; pdb.set_trace()
     try:
         ssh_client = ssh.master_client_with_config(config)
     except Exception as e:
