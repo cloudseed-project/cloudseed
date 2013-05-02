@@ -175,7 +175,9 @@ class FilesystemConfig(Loggable, Filesystem):
             self.profile = {}
             return
 
-        self.data['environment'] = self.environment()
+        if 'environment' not in self.data:
+            self.data['environment'] = self.environment()
+
         self.providers = self.load_providers(provider_config)
         self.profile = self.load_profile(profile_config)
 
