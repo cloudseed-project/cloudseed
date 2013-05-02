@@ -61,6 +61,7 @@ def _master_data(config):
     ssh_keys_data = _ssh_keys_for_providers(providers)
     profiles_data = Filesystem.encode(profiles)
     providers_data = Filesystem.encode(providers)
+    config_data = Filesystem.encode(config.data)
 
     project = config.data['project']
     master_project_path = os.path.join(
@@ -89,6 +90,7 @@ def _master_data(config):
     cloudseed_data = {
     'profiles': profiles_data,
     'providers': providers_data,
+    'config': config_data,
     'ssh_keys': ssh_keys_data}
 
     return {
