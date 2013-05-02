@@ -2,7 +2,7 @@
 mkdir -p /etc/salt/cloudseed
 echo "{{ data.salt.master }}" > /etc/salt/master
 echo "{{ data.salt.minion }}" > /etc/salt/minion
-echo "{{ data.cloudseed.provider }}" > /etc/salt/cloudseed/providers; chmod 600 /etc/salt/cloudseed/providers
+echo "{{ data.cloudseed.providers }}" > /etc/salt/cloudseed/providers; chmod 600 /etc/salt/cloudseed/providers
 echo "{{ data.cloudseed.profiles }}" > /etc/salt/cloudseed/profile; chmod 600 /etc/salt/cloudseed/profile
 
 {% for item in data.cloudseed.ssh_keys -%}
