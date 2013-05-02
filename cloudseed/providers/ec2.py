@@ -52,19 +52,20 @@ class EC2Provider(Loggable):
     def create_instance(self, profile, config, instance_name, state, data):
         self.log.debug('Creating instance')
 
+        base_groups = self._base_security_groups(config)
+
         try:
             self.verify_keys()
         except NeedsEc2Key:
             self.log.debug('Createing EC2 key')
             self.create_key_pair(config)
 
-        groups = [instance_name]
+        groups = [instance_name, base_groups['app'][0]]
 
         self._initialize_security_groups(config)
         self._create_security_group(instance_name, config, profile)
 
         if state == 'master':
-            base_groups = self._base_security_groups(config)
             groups.append(base_groups['ssh'][0])
 
         user_data = script(
