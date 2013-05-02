@@ -31,7 +31,6 @@ class Config(Loggable):
         # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
 
     def master_config_data(self, data=None, files=None):
-
         master = salt.config.DEFAULT_MASTER_OPTS.copy()
 
         master.update(
@@ -64,6 +63,24 @@ class Config(Loggable):
             pass
 
         return minion
+
+    def profile_for_key(self, key):
+
+        profiles = self.profile
+
+        try:
+            data = profiles[key]
+        except KeyError:
+            return {}
+
+        try:
+            base_profile = profiles.get(data['extends'], {})
+        except KeyError:
+            base_profile = {}
+
+        base_profile.update(data)
+
+        return base_profile
 
     def provider_for_profile(self, profile):
         provider_key = profile['provider']

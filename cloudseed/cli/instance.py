@@ -9,11 +9,11 @@ options:
 '''
 
 import sys
-import os
-import yaml
 from docopt import docopt
+from salt.client import LocalClient
 from cloudseed.modules import instances
 from cloudseed.modules import salt
+from cloudseed.utils.filesystem import Filesystem
 
 
 def run(config, argv):
@@ -28,7 +28,7 @@ def run(config, argv):
         sys.stdout.write('Have you run \'cloudseed init env <environment>\'?\n')
         return
 
-    data = {'salt':{}}
+    data = {'salt': {}}
 
     master = config.master_config_data(files=['/etc/salt/master'])
 
@@ -38,13 +38,25 @@ def run(config, argv):
 
     pem, pub = salt.gen_keys()
 
+    client = LocalClient()
+    grains = client.cmd('master', 'grains.item', ['fqdn'])
+
+    try:
+        master_fqdn = grains['master']['fqdn']
+    except KeyError:
+        return
+
+    minion_data = {'master': master_fqdn}
+    profile = config.profile_for_key(profile_name)
+    minion_data.update(profile.get('minion', {}))
+
     data['salt']['minion_pub'] = pub
     data['salt']['minion_pem'] = pem
-    data['salt']['minion'] = config.minion_config_data({})
+    data['salt']['minion'] = Filesystem.encode(
+        config.minion_config_data(minion_data))
 
     salt.accept_key(master['pki_dir'], pub, minion_id)
 
-    return
     instances.create_instance(
         config=config,
         profile_name=profile_name,
