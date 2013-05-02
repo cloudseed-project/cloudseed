@@ -21,11 +21,6 @@ class Config(Loggable):
         self.script_paths = [os.path.abspath(
             os.path.join(os.path.dirname(__file__), 'resources'))]
 
-        self.master_script_paths = [os.path.abspath(
-            os.path.join(os.path.dirname(__file__), 'resources', 'masters'))]
-
-        self.minion_script_paths = [os.path.abspath(
-            os.path.join(os.path.dirname(__file__), 'resources', 'minions'))]
 
     def master_config_data(self, data=None, files=None):
         master = salt.config.DEFAULT_MASTER_OPTS.copy()
@@ -110,7 +105,7 @@ class Config(Loggable):
 
     @property
     def environment(self):
-        return self.resource.environment()
+        return self.resource.data.get('environment')
 
     @property
     def providers(self):
@@ -180,6 +175,7 @@ class FilesystemConfig(Loggable, Filesystem):
             self.profile = {}
             return
 
+        self.data['environment'] = self.environment()
         self.providers = self.load_providers(provider_config)
         self.profile = self.load_profile(profile_config)
 
