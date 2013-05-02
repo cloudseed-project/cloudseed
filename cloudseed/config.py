@@ -1,4 +1,5 @@
 import os
+import salt.config
 import stevedore
 from cloudseed.utils.logging import Loggable
 from cloudseed.utils.filesystem import Filesystem
@@ -28,6 +29,41 @@ class Config(Loggable):
 
         # TODO: EXPOSE MASTER AND MINION CONFIG PATHS SOME HOW
         # LOAD PROJECT FIRST THEN LOAD LOCAL AND MERGE THEM
+
+    def master_config_data(self, data=None, files=None):
+
+        master = salt.config.DEFAULT_MASTER_OPTS.copy()
+
+        master.update(
+            log_level='info',
+            log_level_logfile='info'
+        )
+
+        if files:
+            master.update(Filesystem.load_file(*files))
+
+        try:
+            master.update(data)
+        except TypeError:
+            pass
+
+        return master
+
+    def minion_config_data(self, data=None):
+
+        minion = salt.config.DEFAULT_MINION_OPTS.copy()
+
+        minion.update(
+            log_level='info',
+            log_level_logfile='info'
+        )
+
+        try:
+            minion.update(data)
+        except TypeError:
+            pass
+
+        return minion
 
     def provider_for_profile(self, profile):
         provider_key = profile['provider']

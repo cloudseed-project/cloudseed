@@ -30,23 +30,20 @@ def run(config, argv):
 
     data = {'salt':{}}
 
+    master = config.master_config_data(files=['/etc/salt/master'])
+
     instance_name = instances.instance_name_for_state(state, config)
     instance_id = instance_name.rsplit('-')[-1]
     minion_id = '{0}{1}'.format(state, instance_id)
 
-    pub, pem = salt.create_key_for_name(minion_id)
+    pem, pub = salt.gen_keys()
 
-    with open(pub, 'r') as f:
-        data['salt']['minion_pub'] = f.read()
+    data['salt']['minion_pub'] = pub
+    data['salt']['minion_pem'] = pem
+    data['salt']['minion'] = config.minion_config_data({})
 
-    with open(pem, 'r') as f:
-        data['salt']['minion_pem'] = f.read()
+    salt.accept_key(master['pki_dir'], pub, minion_id)
 
-    # data needs to have the following:
-    # data.salt.minion_pem <- private key data
-    # data.salt.minion_pub <- public key data
-    # data.salt.minion <- Minion Conf
-    import pdb; pdb.set_trace()
     return
     instances.create_instance(
         config=config,

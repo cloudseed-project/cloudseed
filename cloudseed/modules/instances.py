@@ -1,6 +1,7 @@
 import os
 import logging
 import yaml
+import salt.config
 from cloudseed.utils import ssh
 from cloudseed.utils.filesystem import Filesystem
 
@@ -55,7 +56,6 @@ def _providers_for_config(config):
 
 def _master_data(config):
 
-    project = config.data['project']
     profiles = config.profile
     providers = _providers_for_config(config)
 
@@ -63,22 +63,25 @@ def _master_data(config):
     profiles_data = Filesystem.encode(profiles)
     providers_data = Filesystem.encode(providers)
 
+    project = config.data['project']
     master_project_path = os.path.join(
         Filesystem.project_path(project),
-        'master')
+        'master'
+    )
 
     master_env_path = os.path.join(
         Filesystem.current_env(),
         'master'
-        )
+    )
 
-    merged_master = Filesystem.load_file(master_project_path, master_env_path)
+    master = Filesystem.encode(config.master_config_data(
+        files=[master_project_path, master_env_path]))
 
-    master = Filesystem.encode(merged_master)
-    minion = Filesystem.encode(
-        {'id': 'master',
+    minion = Filesystem.encode(config.minion_config_data({
+        'id': 'master',
         'master': 'localhost',
-        'grains': {'roles': ['master']}})
+        'grains': {'roles': ['master']}
+        }))
 
     salt_data = {
     'master': master,

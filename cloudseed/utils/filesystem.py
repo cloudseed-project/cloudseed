@@ -66,7 +66,7 @@ class YAMLWriter(object):
 
     @staticmethod
     def encode(data):
-        return yaml.dump(data, default_flow_style=False)
+        return yaml.safe_dump(data, default_flow_style=False)
 
     @staticmethod
     def write_file(path, data):
