@@ -9,7 +9,6 @@ options:
 '''
 import sys
 from docopt import docopt
-from cloudseed.exceptions import UnknownConfigProvider
 from cloudseed.modules import instances
 
 

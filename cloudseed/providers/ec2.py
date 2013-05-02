@@ -5,9 +5,7 @@ import yaml
 import boto
 from boto import ec2
 from boto.exception import EC2ResponseError
-from cloudseed.utils.deploy import bootstrap_script
 from cloudseed.utils.deploy import script
-from cloudseed.modules import instances
 from cloudseed.security import write_key_for_config
 from cloudseed.utils.exceptions import config_key_error, profile_key_error
 from cloudseed.exceptions import (
@@ -49,18 +47,10 @@ class EC2Provider(Loggable):
         except KeyError:
             return None
 
-    def deploy_extras(self, context=None):
-        key_path = os.path.expanduser(self.provider['private_key'])
-
-        with open(key_path) as f:
-            key = f.read()
-
-        return ['echo "{0}" > /etc/salt/cloudseed.pem'.format(key)]
-
     def deploy(self, states, machine):
         self.log.debug('States for deploy: %s', states)
 
-    def create_instance(self, profile, config, instance_name, data):
+    def create_instance(self, profile, config, instance_name, state, data):
         self.log.debug('Creating instance')
 
         try:
@@ -69,38 +59,19 @@ class EC2Provider(Loggable):
             self.log.debug('Createing EC2 key')
             self.create_key_pair(config)
 
-        import pdb; pdb.set_trace()
-        groups = self._initialize_security_groups(config)
+        groups = [instance_name]
+
+        self._initialize_security_groups(config)
+        self._create_security_group(instance_name, config)
+
+        if state == 'master':
+            base_groups = self._base_security_groups(config)
+            groups.append(base_groups['ssh'][0])
 
         user_data = script(
             profile['script'],
             config=config,
             data=data)
-
-        return self._create_instance(
-            instance_name=instance_name,
-            profile=profile,
-            security_groups=groups,
-            user_data=user_data)
-
-    def bootstrap(self, profile, config):
-        self.log.debug('Creating bootstrap node')
-
-        try:
-            self.verify_keys()
-        except NeedsEc2Key:
-            self.log.debug('Createing EC2 key')
-            self.create_key_pair(config)
-
-        groups = self._initialize_security_groups(config)
-        extras = self._extras_user_data(config)
-
-        user_data = bootstrap_script(
-            profile['script'],
-            config=config,
-            extras=extras)
-
-        instance_name = instances.instance_name_for_state('master', config)
 
         return self._create_instance(
             instance_name=instance_name,
@@ -168,6 +139,23 @@ class EC2Provider(Loggable):
             if key.name == name:
                 key.delete()
 
+    def _create_security_group(self, name, config):
+        conn = self.conn
+        current_groups = conn.get_all_security_groups()
+        current_set = frozenset([x.name for x in current_groups])
+
+        if name in current_set:
+            return
+
+        instance_id = name.split('-')[-1]
+        description = 'Cloudseed group for {0} {1} machine {2}'\
+        .format(
+            config.data['project'].lower(),
+            config.environment,
+            instance_id)
+
+        conn.create_security_group(name, description)
+
     def _base_security_groups(self, config):
         project = config.data['project'].lower()
         env = config.environment
@@ -178,9 +166,6 @@ class EC2Provider(Loggable):
 
         'ssh': ('cloudseed-{0}-{1}-SSH'.format(project, env),
             'Cloudseed SSH for {0} {1}'.format(project, env)),
-
-        'master': ('cloudseed-{0}-{1}-0'.format(project, env),
-            'Cloudseed group for {0} {1} machine 0'.format(project, env)),
         }
 
     def _initialize_security_groups(self, config):
@@ -191,7 +176,6 @@ class EC2Provider(Loggable):
         base_groups = (
             groups['app'],
             groups['ssh'],
-            groups['master'],
         )
 
         current_groups = conn.get_all_security_groups()

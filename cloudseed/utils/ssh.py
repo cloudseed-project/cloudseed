@@ -92,7 +92,8 @@ def _client_with_identity(hostname, port, username, identity):
         hostname=hostname,
         port=port,
         username=username,
-        key_filename=identity)
+        key_filename=identity,
+        timeout=5)
     return client
 
 
@@ -106,6 +107,7 @@ def _client_with_password(hostname, port, username, password):
         hostname=hostname,
         port=port,
         username=username,
-        password=password)
+        password=password,
+        timeout=5)
 
     return client

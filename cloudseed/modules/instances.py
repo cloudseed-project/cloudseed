@@ -140,11 +140,11 @@ def create_instance(config, profile_name, state, data):
         profile,
         config,
         instance_name,
+        state,
         data)
 
 
 def next_id_for_state(state, config):
-
     try:
         ssh_client = ssh.master_client_with_config(config)
     except:
@@ -169,7 +169,9 @@ def next_id_for_state(state, config):
 
 def instance_name_for_state(state, config):
     instance_id = next_id_for_state(state, config)
-    return 'cloudseed-{0}-{1}'.format(
+
+    return 'cloudseed-{0}-{1}-{2}'.format(
         config.data['project'].lower(),
+        config.environment,
         instance_id)
 
