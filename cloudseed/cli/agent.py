@@ -15,7 +15,7 @@ def run(config, argv):
     args = docopt(__doc__, argv=argv)
 
 
-    sys.stdout.write('Listening for events from Salt\n')
+    sys.stdout.write('Listening for events\n')
 
     event = salt.utils.event.MasterEvent('/var/run/salt/master')
     for data in event.iter_events():
