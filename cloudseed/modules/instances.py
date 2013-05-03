@@ -133,7 +133,6 @@ def create_instance(config, profile_name, state, data, instance_name=None):
 
 
 def next_id_for_state(state, config):
-    import pdb; pdb.set_trace()
     try:
         ssh_client = ssh.master_client_with_config(config)
     except:
@@ -151,7 +150,7 @@ def next_id_for_state(state, config):
     log.debug('Received data: %s', data)
 
     # https://github.com/saltstack/salt/issues/4696
-    if not data.lower().startswith('no minions matched'):
+    if data and not data.lower().startswith('no minions matched'):
         obj = yaml.load(data)
         count = len(list(obj.iterkeys()))
         log.debug('Got count %s for state %s', count, state)
