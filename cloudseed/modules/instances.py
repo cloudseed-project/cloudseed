@@ -143,7 +143,9 @@ def next_id_for_state(state, config):
     pki_dir = master['pki_dir']
 
     key_path = os.path.join(pki_dir, 'minions')
-    return len(glob.glob('{0}/{1}[0-9]*'.format(key_path, state)))
+    count = len(glob.glob('{0}/{1}[0-9]*'.format(key_path, state)))
+
+    return count
 
     # cmd_current_items = 'sudo sh -c "salt --out=yaml -G \'roles:{0}\' grains.item id"'\
     #     .format(state)

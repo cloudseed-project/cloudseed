@@ -59,4 +59,5 @@ def run(config, argv):
         config=config,
         profile_name=profile_name,
         state=state,
-        data=data)
+        data=data,
+        instance_name=instance_name)
