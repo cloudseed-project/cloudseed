@@ -135,8 +135,7 @@ def create_instance(config, profile_name, state, data, instance_name=None):
 def next_id_for_state(state, config):
     try:
         ssh_client = ssh.master_client_with_config(config)
-    except Exception as e:
-        log.error(e)
+    except:
         return 0
 
     cmd_current_items = 'sudo sh -c "salt --out=yaml -G \'roles:{0}\' grains.item id"'\
