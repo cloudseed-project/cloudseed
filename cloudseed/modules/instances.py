@@ -133,6 +133,7 @@ def create_instance(config, profile_name, state, data, instance_name=None):
 
 
 def next_id_for_state(state, config):
+    import pdb; pdb.set_trace()
     try:
         ssh_client = ssh.master_client_with_config(config)
     except:
