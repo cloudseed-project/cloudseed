@@ -1,4 +1,5 @@
 import os
+import glob
 import logging
 import yaml
 from cloudseed.utils import ssh
@@ -133,30 +134,36 @@ def create_instance(config, profile_name, state, data, instance_name=None):
 
 
 def next_id_for_state(state, config):
-    try:
-        ssh_client = ssh.master_client_with_config(config)
-    except:
+
+    # if master != localhost we are not on the master server
+    if config.data['master'] != 'localhost':
         return 0
 
-    cmd_current_items = 'sudo sh -c "salt --out=yaml -G \'roles:{0}\' grains.item id"'\
-        .format(state)
+    master = config.master_config_data(files=['/etc/salt/master'])
+    pki_dir = master['pki_dir']
 
-    log.debug('Executing: %s', cmd_current_items)
+    key_path = os.path.join(pki_dir, 'minions')
+    return len(glob.glob('{0}/{1}[0-9]*'.format(key_path, state)))
 
-    data = ssh.run(
-        ssh_client,
-        cmd_current_items)
+    # cmd_current_items = 'sudo sh -c "salt --out=yaml -G \'roles:{0}\' grains.item id"'\
+    #     .format(state)
 
-    log.debug('Received data: %s', data)
+    # log.debug('Executing: %s', cmd_current_items)
 
-    # https://github.com/saltstack/salt/issues/4696
-    if data and not data.lower().startswith('no minions matched'):
-        obj = yaml.load(data)
-        count = len(list(obj.iterkeys()))
-        log.debug('Got count %s for state %s', count, state)
-        return count
+    # data = ssh.run(
+    #     ssh_client,
+    #     cmd_current_items)
 
-    return 0
+    # log.debug('Received data: %s', data)
+
+    # # https://github.com/saltstack/salt/issues/4696
+    # if data and not data.lower().startswith('no minions matched'):
+    #     obj = yaml.load(data)
+    #     count = len(list(obj.iterkeys()))
+    #     log.debug('Got count %s for state %s', count, state)
+    #     return count
+
+    # return 0
 
 
 def instance_name_for_state(state, config):
