@@ -70,6 +70,10 @@ common commands:
         from cloudseed.cli import initialize
         initialize.run(config, argv)
 
+    elif command == 'agent':
+        from cloudseed.cli import agent
+        agent.run(config, argv)
+
     elif command == 'bootstrap':
         from cloudseed.cli import bootstrap
         bootstrap.run(config, argv)
