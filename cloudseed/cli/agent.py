@@ -18,7 +18,7 @@ def run(config, argv):
     sys.stdout.write('Listening for events from Salt\n')
 
     event = salt.utils.event.MasterEvent('/var/run/salt/master')
-    for data in event.iter_events(tag='auth'):
+    for data in event.iter_events():
         print(data)
 
 
