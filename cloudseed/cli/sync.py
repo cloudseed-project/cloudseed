@@ -107,7 +107,7 @@ in your provider for this master')
     try:
         remote_path = master_config['file_roots']['base'][0]
     except KeyError:
-        remote_path = '/src/salt'
+        remote_path = '/srv/salt'
 
     remote_file = os.path.join('/tmp', os.path.basename(tmp.name))
 
@@ -153,6 +153,7 @@ in your provider for this master')
 
     # debugging command only
     ssh.run(ssh_client,
-            'sudo sh -c "salt \'master\' state.highstate"')
+            'sudo sh -c "salt \'master\' state.highstate --async"')
 
     sys.stdout.write('Sync complete\n')
+

@@ -136,7 +136,10 @@ def create_instance(config, profile_name, state, data, instance_name=None):
 def next_id_for_state(state, config):
 
     # if master != localhost we are not on the master server
-    if config.data['master'] != 'localhost':
+    try:
+        if config.data['master'] != 'localhost':
+            return 0
+    except KeyError:
         return 0
 
     master = config.master_config_data(files=['/etc/salt/master'])
